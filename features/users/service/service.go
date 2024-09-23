@@ -2,7 +2,7 @@ package service
 
 import (
 	"errors"
-	"qhealth/entity/domain"
+	"qhealth/domain"
 	"qhealth/features/users"
 	"qhealth/helpers"
 )

@@ -1,7 +1,7 @@
 package users
 
 import (
-	"qhealth/entity/domain"
+	"qhealth/domain"
 
 	"github.com/labstack/echo/v4"
 )

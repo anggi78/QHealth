@@ -2,7 +2,7 @@ package repository
 
 import (
 	"errors"
-	"qhealth/entity/domain"
+	"qhealth/domain"
 	"qhealth/features/users"
 
 	"gorm.io/gorm"

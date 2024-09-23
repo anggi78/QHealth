@@ -3,7 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
-	"qhealth/entity/domain"
+	"qhealth/domain"
 	"qhealth/features/users"
 	"qhealth/helpers"
 
