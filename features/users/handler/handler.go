@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"qhealth/domain"
 	"qhealth/features/users"
@@ -46,7 +45,6 @@ func (h *handler) Register(e echo.Context) error {
 	userReq := domain.UserRegister{}
 	err := e.Bind(&userReq)
 	if err != nil {
-		fmt.Println("err", err)
 		return helpers.CustomErr(e, err.Error())
 	}
 
@@ -158,7 +156,7 @@ func (h *handler) DeleteUser(e echo.Context) error {
 func (h *handler) UpdateUser(e echo.Context) error {
     _, email, err := helpers.ExtractToken(e)
     if err != nil {
-        return helpers.CustomErr(e, err.Error())
+        return helpers.CustomErr(e, "Invalid token")
     }
 
     userReq := domain.UserReq{}
@@ -167,7 +165,11 @@ func (h *handler) UpdateUser(e echo.Context) error {
     }
 
     fileHeader, err := e.FormFile("file")
-    if err == nil {
+    if err != nil && err != http.ErrMissingFile { 
+        return helpers.CustomErr(e, err.Error())
+    }
+
+    if fileHeader != nil {
         imageUrl, err := helpers.UploadFile(fileHeader)
         if err != nil {
             return helpers.CustomErr(e, err.Error())
@@ -176,11 +178,7 @@ func (h *handler) UpdateUser(e echo.Context) error {
         userReq.ImageKtp = imageUrl
     }
 
-    if _, err := govalidator.ValidateStruct(userReq); err != nil {
-        return helpers.CustomErr(e, "invalid user data")
-    }
-
-    err = h.service.UpdateUser(email, userReq)
+    err = h.service.UpdateUser(email, userReq)  
     if err != nil {
         return helpers.CustomErr(e, err.Error())
     }

@@ -77,18 +77,17 @@ func (r *repository) DeleteUser(email string) error {
 	return nil
 }
 
-func (r *repository) UpdateUser(email string, data map[string]interface{}) error {
-    _, err := r.FindByEmail(email)
-    if err != nil {
-        return err
-    }
+func (r *repository) UpdateUser(email string, user domain.User) error {
+	_, err := r.FindByEmail(email)
+	if err != nil {
+		return err
+	}
 
-    err = r.db.Model(&domain.User{}).
-        Where("email = ?", email).
-        Updates(data).Error
-    if err != nil {
-        return err
-    }
-    return nil
+	err = r.db.Where("email = ?", email).Updates(&user).Error
+	if err != nil {
+		return err
+	}
+	
+	return nil
 }
 
