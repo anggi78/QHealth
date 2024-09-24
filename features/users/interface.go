@@ -12,6 +12,8 @@ type (
 		FindByEmail(email string) (domain.User, error)
 		FindCodeByEmail(email string) (string, error)
 		UpdatePass(email, newPass string) error
+		DeleteUser(email string) error
+		UpdateUser(email string, data map[string]interface{}) error
 	}
 
 	Service interface {
@@ -20,6 +22,8 @@ type (
 		ChangePass(email string, reqPass domain.ReqChangePass) error
 		ChangePassForgot(email, newPass string) error
 		ForgotPassword(email string) error
+		DeleteUser(email string) error
+		UpdateUser(email string, user domain.UserReq) error
 	}
 
 	Handler interface {
@@ -28,5 +32,7 @@ type (
 		ChangePass(e echo.Context) error
 		ChangePassForgot(e echo.Context) error
 		ForgotPassword(e echo.Context) error
+		DeleteUser(e echo.Context) error
+		UpdateUser(e echo.Context) error
 	}
 )

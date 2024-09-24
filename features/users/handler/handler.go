@@ -9,6 +9,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 type handler struct {
@@ -135,4 +136,54 @@ func (h *handler) ForgotPassword(e echo.Context) error {
 	}
 
 	return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully send an email", nil))
+}
+
+func (h *handler) DeleteUser(e echo.Context) error {
+	_, email, err := helpers.ExtractToken(e)
+	if err != nil {
+		return helpers.CustomErr(e, err.Error())
+	}
+
+	err = h.service.DeleteUser(email)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return helpers.CustomErr(e, "User not found")
+		}
+		return helpers.CustomErr(e, err.Error())
+	}
+
+	return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully deleted user", nil))
+}
+
+func (h *handler) UpdateUser(e echo.Context) error {
+    _, email, err := helpers.ExtractToken(e)
+    if err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
+
+    userReq := domain.UserReq{}
+    if err := e.Bind(&userReq); err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
+
+    fileHeader, err := e.FormFile("file")
+    if err == nil {
+        imageUrl, err := helpers.UploadFile(fileHeader)
+        if err != nil {
+            return helpers.CustomErr(e, err.Error())
+        }
+        userReq.Image = imageUrl
+        userReq.ImageKtp = imageUrl
+    }
+
+    if _, err := govalidator.ValidateStruct(userReq); err != nil {
+        return helpers.CustomErr(e, "invalid user data")
+    }
+
+    err = h.service.UpdateUser(email, userReq)
+    if err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
+
+    return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully updated data", nil))
 }
