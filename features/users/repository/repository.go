@@ -61,3 +61,34 @@ func (r *repository) UpdatePass(email, newPass string) error {
 
 	return nil
 }
+
+func (r *repository) DeleteUser(email string) error {
+	err := r.db.Where("email = ?", email).Delete(&domain.User{}).Error
+	if err != nil {
+		return err
+	}
+
+	// Contoh jika ada entitas related:
+	// err = r.db.Where("user_id = ?", userID).Delete(&domain.RelatedEntity{}).Error
+	// if err != nil {
+	// 	return err
+	// }
+
+	return nil
+}
+
+func (r *repository) UpdateUser(email string, data map[string]interface{}) error {
+    _, err := r.FindByEmail(email)
+    if err != nil {
+        return err
+    }
+
+    err = r.db.Model(&domain.User{}).
+        Where("email = ?", email).
+        Updates(data).Error
+    if err != nil {
+        return err
+    }
+    return nil
+}
+

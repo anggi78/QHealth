@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"log"
 	"os"
 	"strconv"
 
@@ -85,8 +86,9 @@ func SendEmail(email string, subject string, code string) error {
 	d := gomail.NewDialer(smtpServer, smtpPort, smtpUsername, smtpPassword)
 
 	if err := d.DialAndSend(m); err != nil {
+		log.Printf("Failed to send email to %s: %v", email, err)
 		return err
-	}
+	}	
 
 	return nil
 }
