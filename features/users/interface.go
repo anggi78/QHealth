@@ -13,7 +13,7 @@ type (
 		FindCodeByEmail(email string) (string, error)
 		UpdatePass(email, newPass string) error
 		DeleteUser(email string) error
-		UpdateUser(email string, data map[string]interface{}) error
+		UpdateUser(email string, user domain.User) error
 	}
 
 	Service interface {

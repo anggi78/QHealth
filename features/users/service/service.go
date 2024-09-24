@@ -116,37 +116,11 @@ func (s *service) DeleteUser(email string) error {
 	return s.repo.DeleteUser(email)
 }
 
-func (s *service) UpdateUser(email string, userReq domain.UserReq) error {
-    data := make(map[string]interface{})
-
-    if userReq.Name != "" {
-        data["name"] = userReq.Name
-    }
-    if userReq.Phone != "" {
-        data["phone"] = userReq.Phone
-    }
-    if userReq.Address != "" {
-        data["address"] = userReq.Address
-    }
-    if userReq.Image != "" {
-        data["image"] = userReq.Image
-    }
-    if !userReq.Birth.IsZero() {
-        data["birth"] = userReq.Birth
-    }
-    if userReq.JK != "" {
-        data["jk"] = userReq.JK
-    }
-    if userReq.Nik != "" {
-        data["nik"] = userReq.Nik
-    }
-    if userReq.ImageKtp != "" {
-        data["image_ktp"] = userReq.ImageKtp
-    }
-
-    err := s.repo.UpdateUser(email, data)
-    if err != nil {
-        return err
-    }
-    return nil
+func (s *service) UpdateUser(email string, user domain.UserReq) error {
+	data := domain.ReqToUser(user)
+	err := s.repo.UpdateUser(email, data)
+	if err != nil {
+		return err
+	}
+	return nil
 }

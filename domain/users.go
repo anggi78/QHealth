@@ -15,7 +15,7 @@ type User struct {
 	Phone     string
 	Address   string
 	Image     string
-	Birth     time.Time
+	Birth     string
 	JK        string
 	Nik       string
 	ImageKtp  string
@@ -58,15 +58,15 @@ type ReqChangePass struct {
 }
 
 type UserReq struct {
-	Name     string    `json:"name" valid:"required~your username is required"`
-	Email    string    `json:"email" valid:"required~your email is required, email~invalid email format"`
-	Phone    string    `json:"phone" valid:"required~your phone is required"`
-	Address  string    `json:"address" valid:"required~your address is required"`
-	Image    string    `json:"image" valid:"required~your image is required"`
-	Birth    time.Time `json:"birth" valid:"required~your birth is required"`
-	JK       string    `json:"jk" valid:"required~your jk is required"`
-	Nik      string    `json:"nik" valid:"required~your nik is required"`
-	ImageKtp string    `json:"image_ktp" valid:"required~your image_ktp is required"`
+	Name     string `json:"name" form:"name" valid:"required~your username is required"`
+	Email    string `json:"email" form:"email" valid:"required~your email is required, email~invalid email format"`
+	Phone    string `json:"phone" form:"phone" valid:"required~your phone is required"`
+	Address  string `json:"address" form:"address" valid:"required~your address is required"`
+	Image    string `json:"image" form:"image" valid:"required~your image is required"`
+	Birth    string `json:"birth" form:"birth" valid:"required~your birth is required"`
+	JK       string `json:"jk" form:"jk" valid:"required~your jk is required"`
+	Nik      string `json:"nik" form:"nik" valid:"required~your nik is required"`
+	ImageKtp string `json:"image_ktp" form:"image_ktp" valid:"required~your image_ktp is required"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {
