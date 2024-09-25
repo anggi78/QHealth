@@ -36,7 +36,7 @@ type UserEmail struct {
 }
 
 type UserRegister struct {
-	Name     string `json:"name" valid:"required~your username is required"`
+	Name     string `json:"name" valid:"required~your name is required"`
 	Email    string `json:"email" valid:"required~your email is required, email~invalid email format"`
 	Password string `json:"password" valid:"required~your password is required,minstringlength(6)~Password has to have a minimum length of 6 characters"`
 	Phone    string `json:"phone"`
