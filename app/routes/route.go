@@ -1,7 +1,8 @@
 package routes
 
 import (
-	"qhealth/features/users/router"
+	article "qhealth/features/article/router"
+	user "qhealth/features/users/router"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -9,5 +10,8 @@ import (
 
 func Routes(e *echo.Echo, db *gorm.DB) {
 	userGroup := e.Group("/users")
-	router.UserRoute(userGroup, db)
+	user.UserRoute(userGroup, db)
+	
+	articleGroup := e.Group("/article")
+	article.ArticleRoute(articleGroup, db)
 }
