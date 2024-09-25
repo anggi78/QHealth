@@ -164,19 +164,21 @@ func (h *handler) UpdateUser(e echo.Context) error {
         return helpers.CustomErr(e, err.Error())
     }
 
-    fileHeader, err := e.FormFile("file")
-    if err != nil && err != http.ErrMissingFile { 
-        return helpers.CustomErr(e, err.Error())
+	fileImage, err := e.FormFile("image")
+	if err != nil && err != http.ErrMissingFile {
+		return helpers.CustomErr(e, "error handling image file: " + err.Error())
+	}
+
+	fileImageKtp, err := e.FormFile("image_ktp")
+	if err != nil && err != http.ErrMissingFile { 
+        return helpers.CustomErr(e, "error handling image_ktp file: " + err.Error())
     }
 
-    if fileHeader != nil {
-        imageUrl, err := helpers.UploadFile(fileHeader)
-        if err != nil {
-            return helpers.CustomErr(e, err.Error())
-        }
-        userReq.Image = imageUrl
-        userReq.ImageKtp = imageUrl
-    }
+	client := helpers.ConfigCloud()
+	imageUrl := helpers.UploadFile(fileImage, client)
+	imageKtpUrl := helpers.UploadFile(fileImageKtp, client)
+	userReq.Image = imageUrl
+	userReq.ImageKtp = imageKtpUrl
 
     err = h.service.UpdateUser(email, userReq)  
     if err != nil {
