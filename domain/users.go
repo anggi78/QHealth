@@ -20,6 +20,7 @@ type User struct {
 	Nik       string
 	ImageKtp  string
 	Code      string
+	Articles  []Articles `gorm:"foreignKey:IdUser;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
