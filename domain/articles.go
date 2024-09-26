@@ -16,7 +16,7 @@ type Articles struct {
 	Status    int
 	Image     string `valid:"required~your image is required, image~invalid image format"`
 	IdUser    string
-	User      User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	User      User `gorm:"foreignKey:IdUser;references:Id"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
@@ -38,7 +38,7 @@ type ArticleResp struct {
 	Date    string `json:"date"`
 	Image   string `json:"image"`
 	Status  int    `json:"status"`
-	User    User   `json:"user"`
+	User    Users   `json:"user"`
 }
 
 func (a *Articles) BeforeCreate(tx *gorm.DB) error {

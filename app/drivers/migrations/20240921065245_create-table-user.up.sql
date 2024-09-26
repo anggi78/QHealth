@@ -13,6 +13,6 @@ CREATE TABLE users (
     id_role VARCHAR(100),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP
+    deleted_at TIMESTAMP,
     CONSTRAINT fk_role FOREIGN KEY (id_role) REFERENCES role(id)
 )

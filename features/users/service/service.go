@@ -5,6 +5,7 @@ import (
 	"qhealth/domain"
 	"qhealth/features/users"
 	"qhealth/helpers"
+	"qhealth/helpers/middleware"
 )
 
 type service struct {
@@ -39,7 +40,7 @@ func (s *service) Login(userReq domain.UserLogin) (string, error) {
 		}
 	}
 
-	token, err := helpers.CreateToken(user.Id, user.Email) 
+	token, err := middleware.CreateToken(user.Id, user.Email) 
 	if err != nil {
 		return "", err
 	}

@@ -4,7 +4,7 @@ import (
 	"qhealth/features/users/handler"
 	"qhealth/features/users/repository"
 	"qhealth/features/users/service"
-	"qhealth/helpers"
+	"qhealth/helpers/middleware"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -19,7 +19,7 @@ func UserRoute(u *echo.Group, db *gorm.DB) {
 	u.POST("/login", handler.Login)
 	u.POST("/forgot-password", handler.ForgotPassword)
 	
-	auth := u.Group("/profile", helpers.JwtMiddleware())
+	auth := u.Group("/profile", middleware.JwtMiddleware())
 	auth.POST("/forgot", handler.ChangePassForgot)
 	auth.POST("/change", handler.ChangePass)
 	auth.PUT("", handler.UpdateUser)

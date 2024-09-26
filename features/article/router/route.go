@@ -4,7 +4,7 @@ import (
 	"qhealth/features/article/handler"
 	"qhealth/features/article/repository"
 	"qhealth/features/article/service"
-	"qhealth/helpers"
+	"qhealth/helpers/middleware"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -15,11 +15,11 @@ func ArticleRoute(a *echo.Group, db *gorm.DB) {
 	serv := service.NewArticleService(repo)
 	handler := handler.NewArticleHandler(serv)
 
-	a.GET("", handler.GetAllArticle)
 	a.GET("/:id", handler.GetArticleById)
 	a.GET("/latest", handler.GetLatestArticle)
 
-	admin := a.Group("/admin", helpers.JwtMiddleware())
+	admin := a.Group("/admin", middleware.JwtMiddleware())
+	admin.GET("", handler.GetAllArticle)
 	admin.POST("", handler.CreateArticle)
 	admin.PUT("/:id", handler.UpdateArticle)
 	admin.DELETE("/:id", handler.DeleteArticle)
