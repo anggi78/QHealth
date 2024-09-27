@@ -9,6 +9,7 @@ import (
 type (
 	Repository interface {
 		CreateArticle(article domain.Articles) error
+		GetUserByEmail(email string) (domain.User, error)
 		GetAllArticle(title string) ([]domain.Articles, error)
 		GetLatestArticle() ([]domain.Articles, error)
 		GetArticleById(id string) (*domain.Articles, error)
@@ -18,7 +19,8 @@ type (
 
 	Service interface {
 		CreateArticle(articleReq domain.ArticleReq) error
-		GetAllArticle(title string) ([]domain.ArticleResp, error)
+		GetUserByEmail(email string) (domain.User, error)
+		GetAllArticle(title string, userId string) ([]domain.ArticleResp, error)
 		GetLatestArticle() ([]domain.ArticleResp, error)
 		GetArticleById(id string) (*domain.Articles, error)
 		UpdateArticle(id string, article domain.ArticleReq) error

@@ -24,7 +24,12 @@ func (s *service) CreateArticle(articleReq domain.ArticleReq) error {
 	return nil
 }
 
-func (s *service) GetAllArticle(title string) ([]domain.ArticleResp, error) {
+func (s *service) GetUserByEmail(email string) (domain.User, error) {
+    return s.repo.GetUserByEmail(email)
+}
+
+
+func (s *service) GetAllArticle(title string, userId string) ([]domain.ArticleResp, error) {
 	article, err := s.repo.GetAllArticle(title)
 
 	if err != nil {

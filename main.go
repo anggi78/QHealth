@@ -43,5 +43,4 @@ func main() {
 	}))
 
 	e.Logger.Fatal(e.Start(":8089"))
-	//e.Logger.Fatal(e.StartTLS(fmt.Sprintf(":%s", "443"), "/etc/letsencrypt/live/tosale.id/fullchain.pem", "/etc/letsencrypt/live/qhealth.id/privkey.pem"))
 }

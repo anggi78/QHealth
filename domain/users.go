@@ -19,11 +19,24 @@ type User struct {
 	JK        string
 	Nik       string
 	ImageKtp  string
+	IdRole    string
 	Code      string
-	Articles  []Articles `gorm:"foreignKey:IdUser;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Role      Role `gorm:"foreignKey:IdRole"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
+}
+
+type UserResp struct {
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	Phone     string `json:"phone"`
+	Address   string `json:"address"`
+	Image     string `json:"image"`
+	Birth     string `json:"birth"`
+	JK        string `json:"jk"`
+	Nik       string `json:"nik"`
+	ImageKtp  string `json:"image_ktp"`
 }
 
 type UserLogin struct {

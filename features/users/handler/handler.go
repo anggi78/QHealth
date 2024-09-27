@@ -5,6 +5,7 @@ import (
 	"qhealth/domain"
 	"qhealth/features/users"
 	"qhealth/helpers"
+	"qhealth/helpers/middleware"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/labstack/echo/v4"
@@ -62,7 +63,7 @@ func (h *handler) Register(e echo.Context) error {
 }
 
 func (h *handler) ChangePass(e echo.Context) error {
-	_, email, err := helpers.ExtractToken(e)
+	_, email, err := middleware.ExtractToken(e)
 	if err != nil {
 		return helpers.CustomErr(e, err.Error())
 	}
@@ -87,7 +88,7 @@ func (h *handler) ChangePass(e echo.Context) error {
 }
 
 func (h *handler) ChangePassForgot(e echo.Context) error {
-	_, email, err := helpers.ExtractToken(e)
+	_, email, err := middleware.ExtractToken(e)
 	if err != nil {
 		return helpers.CustomErr(e, err.Error())
 	}
@@ -137,7 +138,7 @@ func (h *handler) ForgotPassword(e echo.Context) error {
 }
 
 func (h *handler) DeleteUser(e echo.Context) error {
-	_, email, err := helpers.ExtractToken(e)
+	_, email, err := middleware.ExtractToken(e)
 	if err != nil {
 		return helpers.CustomErr(e, err.Error())
 	}
@@ -154,7 +155,7 @@ func (h *handler) DeleteUser(e echo.Context) error {
 }
 
 func (h *handler) UpdateUser(e echo.Context) error {
-    _, email, err := helpers.ExtractToken(e)
+    _, email, err := middleware.ExtractToken(e)
     if err != nil {
         return helpers.CustomErr(e, "Invalid token")
     }

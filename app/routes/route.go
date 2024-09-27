@@ -4,6 +4,7 @@ import (
 	article "qhealth/features/article/router"
 	user "qhealth/features/users/router"
 	role "qhealth/features/role/router"
+	view "qhealth/features/article_view/router"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -18,4 +19,7 @@ func Routes(e *echo.Echo, db *gorm.DB) {
 
 	roleGroup := e.Group("/role")
 	role.RoleRoute(roleGroup, db)
+
+	viewGroup := e.Group("/view")
+	view.ViewRoute(viewGroup, db)
 }

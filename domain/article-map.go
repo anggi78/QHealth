@@ -18,8 +18,6 @@ func ArticleToResp(a Articles) ArticleResp {
 		Content: a.Content,
 		Date:    a.Date,
 		Image:   a.Image,
-		Status:  a.Status,
-		User:    a.User,
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"qhealth/domain"
 	"qhealth/features/article"
 	"qhealth/helpers"
+	"qhealth/helpers/middleware"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -19,40 +20,49 @@ func NewArticleHandler(serv article.Service) article.Handler {
 }
 
 func (h *handler) CreateArticle(e echo.Context) error {
-	articleReq := domain.ArticleReq{}
+    articleReq := domain.ArticleReq{}
+    if err := e.Bind(&articleReq); err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
 
-	if err := e.Bind(&articleReq); err != nil {
-		return helpers.CustomErr(e, err.Error())
-	}
+    date, err := helpers.ParsedDate(articleReq.Date)
+    if err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
 
-	date, err := helpers.ParsedDate(articleReq.Date)
-	if err != nil {
-		return helpers.CustomErr(e, err.Error())
-	}
+    articleReq.Date = date
 
-	articleReq.Date = date
+    fileImage, err := e.FormFile("image")
+    if err != nil && err != http.ErrMissingFile {
+        return helpers.CustomErr(e, "error handling image file: " + err.Error())
+    }
 
-	fileImage, err := e.FormFile("image")
-	if err != nil && err != http.ErrMissingFile {
-		return helpers.CustomErr(e, "error handling image file: " + err.Error())
-	}
+    client := helpers.ConfigCloud()
+    imageUrl := helpers.UploadFile(fileImage, client)
+    articleReq.Image = imageUrl
 
-	client := helpers.ConfigCloud()
-	imageUrl := helpers.UploadFile(fileImage, client)
-	articleReq.Image = imageUrl
+    err = h.serv.CreateArticle(articleReq)
+    if err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
 
-	err = h.serv.CreateArticle(articleReq)
-	if err != nil {
-		return helpers.CustomErr(e, err.Error())
-	}
-
-	return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully create article", nil))
+    return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully create article", nil))
 }
 
 func (h *handler) GetAllArticle(e echo.Context) error {
+	_, userEmail, err := middleware.ExtractToken(e)
+    if err != nil {
+        return helpers.CustomErr(e, "invalid token")
+    }
+
+    user, err := h.serv.GetUserByEmail(userEmail)
+    if err != nil {
+        return helpers.CustomErr(e, "user not found")
+    }
+
 	title := e.QueryParam("title")
 
-	articleList, err := h.serv.GetAllArticle(title)
+	articleList, err := h.serv.GetAllArticle(title, user.Id)
 	if err != nil {
 		return helpers.CustomErr(e, err.Error())
 	}

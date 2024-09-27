@@ -25,6 +25,14 @@ func (r *repository) CreateArticle(article domain.Articles) error {
 	return nil
 }
 
+func (r *repository) GetUserByEmail(email string) (domain.User, error) {
+    var user domain.User
+    if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
+        return user, err
+    }
+    return user, nil
+}
+
 func (r *repository) GetAllArticle(title string) ([]domain.Articles, error) {
 	var article []domain.Articles
 	query := r.db.Order("created_at")
