@@ -30,13 +30,35 @@ func CreateToken(id, email string) (string, error) {
 	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 }
 
+// func ExtractToken(e echo.Context) (string, string, error) {
+// 	user := e.Get("user").(*jwt.Token)
+// 	if user.Valid {
+// 		claims := user.Claims.(jwt.MapClaims)
+// 		Id := claims["id"].(string)
+// 		email := claims["email"].(string)
+// 		return Id, email, nil
+// 	}
+// 	return "", "", errors.New("invalid token")
+// }
+
 func ExtractToken(e echo.Context) (string, string, error) {
-	user := e.Get("user").(*jwt.Token)
-	if user.Valid {
-		claims := user.Claims.(jwt.MapClaims)
-		Id := claims["id"].(string)
-		email := claims["email"].(string)
-		return Id, email, nil
-	}
-	return "", "", errors.New("invalid token")
+    // Pastikan user bertipe *jwt.Token
+    user, ok := e.Get("user").(*jwt.Token)
+    if !ok || !user.Valid {
+        return "", "", errors.New("invalid token")
+    }
+
+    // Ambil klaim dari token dan cek apakah klaim berisi data yang sesuai
+    claims, ok := user.Claims.(jwt.MapClaims)
+    if !ok {
+        return "", "", errors.New("invalid token claims")
+    }
+
+    Id, okId := claims["id"].(string)
+    email, okEmail := claims["email"].(string)
+    if !okId || !okEmail {
+        return "", "", errors.New("invalid token data")
+    }
+
+    return Id, email, nil
 }

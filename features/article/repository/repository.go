@@ -41,7 +41,7 @@ func (r *repository) GetAllArticle(title string) ([]domain.Articles, error) {
 		query = query.Where("title LIKE ?", "%"+title+"%")
 	}
 
-	err := query.Preload("User").Find(&article).Error
+	err := query.Find(&article).Error
 	if err != nil {
 		return nil, err
 	}

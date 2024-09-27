@@ -15,11 +15,11 @@ func ArticleRoute(a *echo.Group, db *gorm.DB) {
 	serv := service.NewArticleService(repo)
 	handler := handler.NewArticleHandler(serv)
 
-	a.GET("/:id", handler.GetArticleById)
 	a.GET("/latest", handler.GetLatestArticle)
 
 	admin := a.Group("/admin", middleware.JwtMiddleware())
 	admin.GET("", handler.GetAllArticle)
+	admin.GET("/:id", handler.GetArticleById)
 	admin.POST("", handler.CreateArticle)
 	admin.PUT("/:id", handler.UpdateArticle)
 	admin.DELETE("/:id", handler.DeleteArticle)

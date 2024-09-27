@@ -20,16 +20,6 @@ func NewArticleHandler(serv article.Service) article.Handler {
 }
 
 func (h *handler) CreateArticle(e echo.Context) error {
-    _, userEmail, err := middleware.ExtractToken(e)
-    if err != nil {
-        return helpers.CustomErr(e, "invalid token")
-    }
-
-    user, err := h.serv.GetUserByEmail(userEmail)
-    if err != nil {
-        return helpers.CustomErr(e, "user not found")
-    }
-
     articleReq := domain.ArticleReq{}
     if err := e.Bind(&articleReq); err != nil {
         return helpers.CustomErr(e, err.Error())
@@ -51,7 +41,7 @@ func (h *handler) CreateArticle(e echo.Context) error {
     imageUrl := helpers.UploadFile(fileImage, client)
     articleReq.Image = imageUrl
 
-    err = h.serv.CreateArticle(articleReq, user.Id)
+    err = h.serv.CreateArticle(articleReq)
     if err != nil {
         return helpers.CustomErr(e, err.Error())
     }

@@ -13,10 +13,7 @@ type Articles struct {
 	Title     string `valid:"required~your title is required"`
 	Content   string `valid:"required~your content is required"`
 	Date      string `valid:"required~your date is required, date~invalid date format"`
-	Status    int
 	Image     string `valid:"required~your image is required, image~invalid image format"`
-	IdUser    string
-	User      User `gorm:"foreignKey:IdUser;references:Id"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
@@ -37,8 +34,6 @@ type ArticleResp struct {
 	Content string `json:"content"`
 	Date    string `json:"date"`
 	Image   string `json:"image"`
-	Status  int    `json:"status"`
-	User    Users   `json:"user"`
 }
 
 func (a *Articles) BeforeCreate(tx *gorm.DB) error {

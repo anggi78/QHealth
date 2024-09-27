@@ -18,7 +18,7 @@ type (
 	}
 
 	Service interface {
-		CreateArticle(articleReq domain.ArticleReq, userId string) error
+		CreateArticle(articleReq domain.ArticleReq) error
 		GetUserByEmail(email string) (domain.User, error)
 		GetAllArticle(title string, userId string) ([]domain.ArticleResp, error)
 		GetLatestArticle() ([]domain.ArticleResp, error)
