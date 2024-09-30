@@ -1,4 +1,4 @@
-CREATE TABLE doctor (
+CREATE TABLE doctors (
     id varchar(100) PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
