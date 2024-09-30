@@ -32,7 +32,7 @@ func CustomErr(e echo.Context, err string) error {
 	if ok {
 		return nil
 	}
-	e, ok = CheckError(e, err, "Password has to have a minimum length of 6 characters", "Password has to have a minimum length of 6 characters", http.StatusBadRequest)
+	e, ok = CheckError(e, err, "password has to have a minimum length of 6 characters", "password has to have a minimum length of 6 characters", http.StatusBadRequest)
 	if ok {
 		return nil
 	}

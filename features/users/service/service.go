@@ -52,16 +52,6 @@ func (s *service) RegisterAdmin(adminReq domain.UserRegister) error {
     return nil
 }
 
-// func (s *service) RegisterUser(user *domain.UserRegister) error {
-// 	role, err := s.repo.GetRoleByName("user")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	user.IdRole = role.Id
-
-// 	return s.repo.CreateUser(domain.User{})
-// }
-
 func (s *service) Login(userReq domain.UserLogin) (string, error) {
 	user, err := s.repo.FindByEmail(userReq.Email)
 	if err != nil {
