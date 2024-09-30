@@ -14,7 +14,7 @@ type (
 		UpdatePass(email, newPass string) error
 		DeleteUser(email string) error
 		UpdateUser(email string, user domain.User) error
-		GetRoleByName(roleName string) (*domain.Role, error)
+		GetRoleByName(name string) (domain.Role, error)
 		CreateRole(role *domain.Role) error
 		CreateRolePermission(permission *domain.RolePermissions) error
 	}

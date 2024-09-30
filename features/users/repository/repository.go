@@ -91,13 +91,13 @@ func (r *repository) UpdateUser(email string, user domain.User) error {
 	return nil
 }
 
-func (r *repository) GetRoleByName(roleName string) (*domain.Role, error) {
-	var role domain.Role
-	err := r.db.Where("name = ?", roleName).First(&role).Error
-	if err != nil {
-		return nil, err
-	}
-	return &role, nil
+func (r *repository) GetRoleByName(name string) (domain.Role, error) {
+    var role domain.Role
+    err := r.db.Where("name = ?", name).First(&role).Error
+    if err != nil {
+        return role, err
+    }
+    return role, nil
 }
 
 func (r *repository) CreateRole(role *domain.Role) error {

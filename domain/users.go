@@ -52,7 +52,6 @@ type UserRegister struct {
 	Email    string `json:"email" valid:"required~your email is required, email~invalid email format"`
 	Password string `json:"password" valid:"required~your password is required,minstringlength(6)~Password has to have a minimum length of 6 characters"`
 	Phone    string `json:"phone"`
-	IdRole   string `json:"id_role"`
 }
 type SendOtp struct {
 	Code  string `json:"code" valid:"required~your code is required"`

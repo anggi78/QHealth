@@ -21,18 +21,20 @@ func NewService(repo users.Repository) users.Service {
 }
 
 func (s *service) Register(userReq domain.UserRegister) error {
-	role, err := s.repo.GetRoleByName("user")
-	if err != nil {
-		return err
-	}
-	userReq.IdRole = role.Id
+    role, err := s.repo.GetRoleByName("user")
+    if err != nil {
+        return err
+    }
 
-	user := domain.UserRegisterToUser(userReq)
-	err = s.repo.CreateUser(user)
-	if err != nil {
-		return err
-	}
-	return nil
+    user := domain.UserRegisterToUser(userReq)
+    user.IdRole = role.Id 
+
+    err = s.repo.CreateUser(user)
+    if err != nil {
+        return err
+    }
+
+    return nil
 }
 
 // func (s *service) RegisterUser(user *domain.UserRegister) error {
@@ -145,28 +147,29 @@ func (s *service) UpdateUser(email string, user domain.UserReq) error {
 }
 
 func (s *service) InitializeRolesAndPermission() error {
-	roles := []domain.Role{
-		{Id: uuid.New().String(), Name: "admin"},
-		{Id: uuid.New().String(), Name: "user"},
-	}
+    roles := []domain.Role{
+        {Id: uuid.New().String(), Name: "admin"},
+        {Id: uuid.New().String(), Name: "user"},
+    }
 
-	for _, role := range roles {
-		if err := s.repo.CreateRole(&role); err != nil {
-			return err
-		}
-	}
+    for i, role := range roles {
+        if err := s.repo.CreateRole(&role); err != nil {
+            return err
+        }
+        roles[i] = role
+    }
 
-	permission := []domain.RolePermissionResp{
-		{Id: uuid.New().String(), CanCreate: true, CanRead: true, CanEdit: true, CanDelete: true, IdRole: roles[0].Id},
-		{Id: uuid.New().String(), CanCreate: false, CanRead: true, CanEdit: false, CanDelete: false, IdRole: roles[1].Id},
-	}
+    permission := []domain.RolePermissionResp{
+        {Id: uuid.New().String(), CanCreate: true, CanRead: true, CanEdit: true, CanDelete: true, IdRole: roles[0].Id},  
+        {Id: uuid.New().String(), CanCreate: false, CanRead: true, CanEdit: false, CanDelete: false, IdRole: roles[1].Id}, 
+    }
 
-	for _, perm := range permission {
-		rolePerm := domain.RolePermissionRespToRolePermission(perm)
-		if err := s.repo.CreateRolePermission(&rolePerm); err != nil {
-			return err
-		}
-	}
+    for _, perm := range permission {
+        rolePerm := domain.RolePermissionRespToRolePermission(perm)
+        if err := s.repo.CreateRolePermission(&rolePerm); err != nil {
+            return err
+        }
+    }
 
-	return nil
+    return nil
 }
