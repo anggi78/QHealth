@@ -15,7 +15,7 @@ func ArticleRoute(a *echo.Group, db *gorm.DB) {
 	serv := service.NewArticleService(repo)
 	handler := handler.NewArticleHandler(serv)
 
-	article := a.Group("articles", middleware.JwtMiddleware())
+	article := a.Group("/articles", middleware.JwtMiddleware())
 	mw := middleware.NewMiddleware(db)
 	
 	// admin
