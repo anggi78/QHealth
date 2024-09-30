@@ -100,10 +100,22 @@ func (r *repository) GetRoleByName(name string) (domain.Role, error) {
     return role, nil
 }
 
+func (r *repository) FindRoleByName(name string, role *domain.Role) error {
+    return r.db.Where("name = ?", name).First(role).Error
+}
+
+func (r *repository) FindRolePermissionByRoleId(roleId string, permission *domain.RolePermissions) error {
+    return r.db.Where("id_role = ?", roleId).First(permission).Error
+}
+
 func (r *repository) CreateRole(role *domain.Role) error {
 	return r.db.Create(role).Error
 }
 
 func (r *repository) CreateRolePermission(permission *domain.RolePermissions) error {
     return r.db.Create(permission).Error
+}
+
+func (r *repository) UpdateRolePermission(permission *domain.RolePermissions) error {
+    return r.db.Save(permission).Error
 }

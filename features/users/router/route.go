@@ -21,8 +21,9 @@ func UserRoute(u *echo.Group, db *gorm.DB) {
 	u.GET("/initialize", handler.InitializeRolesAndPermissions)
 	
 	auth := u.Group("/profile", middleware.JwtMiddleware())
+	mw := middleware.NewMiddleware(db)
 	auth.POST("/forgot", handler.ChangePassForgot)
 	auth.POST("/change", handler.ChangePass)
-	auth.PUT("", handler.UpdateUser)
-	auth.DELETE("", handler.DeleteUser)
+	auth.PUT("", handler.UpdateUser, mw.Authorize("edit"))
+	auth.DELETE("", handler.DeleteUser, mw.Authorize("delete"))
 }

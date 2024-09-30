@@ -15,8 +15,11 @@ type (
 		DeleteUser(email string) error
 		UpdateUser(email string, user domain.User) error
 		GetRoleByName(name string) (domain.Role, error)
+		FindRoleByName(name string, role *domain.Role) error
+		FindRolePermissionByRoleId(roleId string, permission *domain.RolePermissions) error
 		CreateRole(role *domain.Role) error
 		CreateRolePermission(permission *domain.RolePermissions) error
+		UpdateRolePermission(permission *domain.RolePermissions) error
 	}
 
 	Service interface {

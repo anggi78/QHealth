@@ -1,61 +1,83 @@
 package middleware
 
 import (
-	"errors"
 	"net/http"
-	configs "qhealth/app/drivers"
 	"qhealth/domain"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
-func GetPermissionByEmail(email string) (domain.RolePermissions, error) {
-	var user domain.User
-	var rolePermission domain.RolePermissions
-	db := configs.InitDB()
-
-	if err := db.Where("email = ?", email).First(&user).Error; err != nil {
-		return rolePermission, errors.New("user not found")
-	}
-
-	if err := db.Where("id_role = ?", user.IdRole).First(&rolePermission).Error; err != nil {
-		return rolePermission, errors.New("permission not found")
-	}
-
-	return rolePermission, nil
+type Middleware struct {
+    DB *gorm.DB
 }
 
-func CheckPermission(action string) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			_, email, err := ExtractToken(c)
-			if err != nil {
-				return c.JSON(http.StatusForbidden, "invalid token")
-			}
+func NewMiddleware(db *gorm.DB) *Middleware {
+    return &Middleware{DB: db}
+}
 
-			permissions, err := GetPermissionByEmail(email)
+func (m *Middleware) Authorize(permissionType string) echo.MiddlewareFunc {
+    return func(next echo.HandlerFunc) echo.HandlerFunc {
+        return func(c echo.Context) error {
+            // Ambil user dari context yang sudah di-set oleh middleware JwtMiddleware
+            userToken, ok := c.Get("user").(*jwt.Token)
+            if !ok || !userToken.Valid {
+                return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
+            }
 
-			switch action {
-			case "read":
-				if !permissions.CanRead {
-					return c.JSON(http.StatusForbidden, "you do not have permission to read")
+            // Ambil claims dari token
+            claims, ok := userToken.Claims.(jwt.MapClaims)
+            if !ok {
+                return echo.NewHTTPError(http.StatusForbidden, "Invalid token claims")
+            }
+
+            userId, okId := claims["id"].(string)
+            _, okEmail := claims["email"].(string)
+            if !okId || !okEmail {
+                return echo.NewHTTPError(http.StatusForbidden, "Invalid token data")
+            }
+
+            // Temukan user di database
+            var user domain.User
+            err := m.DB.Where("id = ?", userId).First(&user).Error
+            if err != nil {
+                return echo.NewHTTPError(http.StatusForbidden, "user not found")
+            }
+
+            // Ambil role permissions berdasarkan user role
+            var rolePermissions domain.RolePermissions
+            err = m.DB.Where("id_role = ?", user.IdRole).First(&rolePermissions).Error
+            if err != nil {
+				logrus.Printf("User ID Role: %s", user.IdRole)
+
+                return echo.NewHTTPError(http.StatusForbidden, "role not found or permissions not set")
+            }
+
+            // Periksa permissions
+            switch permissionType {
+            case "read":
+                if !rolePermissions.CanRead {
+                    return echo.NewHTTPError(http.StatusForbidden, "access denied")
                 }
             case "edit":
-                if !permissions.CanEdit {
-                    return c.JSON(http.StatusForbidden, "you do not have permission to edit")
+                if !rolePermissions.CanEdit {
+                    return echo.NewHTTPError(http.StatusForbidden, "access denied")
                 }
             case "delete":
-                if !permissions.CanDelete {
-                    return c.JSON(http.StatusForbidden, "you do not have permission to delete")
+                if !rolePermissions.CanDelete {
+                    return echo.NewHTTPError(http.StatusForbidden, "access denied")
                 }
             case "create":
-                if !permissions.CanCreate {
-                    return c.JSON(http.StatusForbidden, "you do not have permission to create")
+                if !rolePermissions.CanCreate {
+                    return echo.NewHTTPError(http.StatusForbidden, "access denied")
                 }
             default:
-                return c.JSON(http.StatusForbidden, "invalid action")
-			}
-			return next(c)
-		}
-	}
+                return echo.NewHTTPError(http.StatusForbidden, "permission not recognized")
+            }
+
+            return next(c)
+        }
+    }
 }

@@ -6,8 +6,6 @@ import (
 	"qhealth/features/users"
 	"qhealth/helpers"
 	"qhealth/helpers/middleware"
-
-	"github.com/google/uuid"
 )
 
 type service struct {
@@ -148,28 +146,75 @@ func (s *service) UpdateUser(email string, user domain.UserReq) error {
 
 func (s *service) InitializeRolesAndPermission() error {
     roles := []domain.Role{
-        {Id: uuid.New().String(), Name: "admin"},
-        {Id: uuid.New().String(), Name: "user"},
+        {Name: "admin"},
+        {Name: "user"},
     }
 
-    for i, role := range roles {
-        if err := s.repo.CreateRole(&role); err != nil {
+    for _, role := range roles {
+        var existingRole domain.Role
+        if err := s.repo.FindRoleByName(role.Name, &existingRole); err != nil {
+            if err := s.repo.CreateRole(&role); err != nil {
+                return err
+            }
+        }
+    }
+
+    var adminRole, userRole domain.Role
+    if err := s.repo.FindRoleByName("admin", &adminRole); err != nil {
+        return err
+    }
+    if err := s.repo.FindRoleByName("user", &userRole); err != nil {
+        return err
+    }
+
+    adminPermissions := domain.RolePermissions{
+        CanCreate: true,
+        CanRead:   true,
+        CanEdit:   true,
+        CanDelete: true,
+        IdRole:    adminRole.Id,
+    }
+
+    userPermissions := domain.RolePermissions{
+        CanCreate: false,
+        CanRead:   true,
+        CanEdit:   true, 
+        CanDelete: true, 
+        IdRole:    userRole.Id,
+    }
+
+    var existingAdminPerm domain.RolePermissions
+    if err := s.repo.FindRolePermissionByRoleId(adminRole.Id, &existingAdminPerm); err != nil {
+        if err := s.repo.CreateRolePermission(&adminPermissions); err != nil {
             return err
         }
-        roles[i] = role
+    } else {
+        existingAdminPerm.CanCreate = adminPermissions.CanCreate
+        existingAdminPerm.CanRead = adminPermissions.CanRead
+        existingAdminPerm.CanEdit = adminPermissions.CanEdit
+        existingAdminPerm.CanDelete = adminPermissions.CanDelete
+
+        if err := s.repo.UpdateRolePermission(&existingAdminPerm); err != nil {
+            return err
+        }
     }
 
-    permission := []domain.RolePermissionResp{
-        {Id: uuid.New().String(), CanCreate: true, CanRead: true, CanEdit: true, CanDelete: true, IdRole: roles[0].Id},  
-        {Id: uuid.New().String(), CanCreate: false, CanRead: true, CanEdit: false, CanDelete: false, IdRole: roles[1].Id}, 
-    }
+    var existingUserPerm domain.RolePermissions
+    if err := s.repo.FindRolePermissionByRoleId(userRole.Id, &existingUserPerm); err != nil {
+        if err := s.repo.CreateRolePermission(&userPermissions); err != nil {
+            return err
+        }
+    } else {
+        existingUserPerm.CanCreate = userPermissions.CanCreate
+        existingUserPerm.CanRead = userPermissions.CanRead
+        existingUserPerm.CanEdit = userPermissions.CanEdit
+        existingUserPerm.CanDelete = userPermissions.CanDelete
 
-    for _, perm := range permission {
-        rolePerm := domain.RolePermissionRespToRolePermission(perm)
-        if err := s.repo.CreateRolePermission(&rolePerm); err != nil {
+        if err := s.repo.UpdateRolePermission(&existingUserPerm); err != nil {
             return err
         }
     }
 
     return nil
 }
+
