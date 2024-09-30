@@ -8,15 +8,15 @@ import (
 )
 
 type Articles struct {
-	Id        string `gorm:"PrimaryKey"`
-	Writer    string `valid:"required~your writer is required"`
-	Title     string `valid:"required~your title is required"`
-	Content   string `valid:"required~your content is required"`
-	Date      string `valid:"required~your date is required, date~invalid date format"`
-	Image     string `valid:"required~your image is required, image~invalid image format"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	Id        string         `gorm:"PrimaryKey" json:"id"`
+	Writer    string         `json:"writer" valid:"required~your writer is required"`
+	Title     string         `json:"title" valid:"required~your title is required"`
+	Content   string         `json:"content" valid:"required~your content is required"`
+	Date      string         `json:"date" valid:"required~your date is required, date~invalid date format"`
+	Image     string         `json:"image" valid:"required~your image is required, image~invalid image format"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 }
 
 type ArticleReq struct {
