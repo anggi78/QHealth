@@ -6,6 +6,8 @@ import (
 	"qhealth/features/users"
 	"qhealth/helpers"
 	"qhealth/helpers/middleware"
+
+	"github.com/google/uuid"
 )
 
 type service struct {
@@ -19,13 +21,29 @@ func NewService(repo users.Repository) users.Service {
 }
 
 func (s *service) Register(userReq domain.UserRegister) error {
+	role, err := s.repo.GetRoleByName("user")
+	if err != nil {
+		return err
+	}
+	userReq.IdRole = role.Id
+
 	user := domain.UserRegisterToUser(userReq)
-	err := s.repo.CreateUser(user)
+	err = s.repo.CreateUser(user)
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
+// func (s *service) RegisterUser(user *domain.UserRegister) error {
+// 	role, err := s.repo.GetRoleByName("user")
+// 	if err != nil {
+// 		return err
+// 	}
+// 	user.IdRole = role.Id
+
+// 	return s.repo.CreateUser(domain.User{})
+// }
 
 func (s *service) Login(userReq domain.UserLogin) (string, error) {
 	user, err := s.repo.FindByEmail(userReq.Email)
@@ -101,15 +119,15 @@ func (s *service) ForgotPassword(email string) error {
 		return errors.New("invalid email")
 	}
 
-	code, err := s.repo.FindCodeByEmail(email)
-	if err != nil {
-		return err
-	}
+	// code, err := s.repo.FindCodeByEmail(email)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = helpers.SendEmail(email, "code verification", code)
-	if err != nil {
-		return err
-	}
+	// err = helpers.SendEmail(email, "code verification", code)
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 }
 
@@ -123,5 +141,32 @@ func (s *service) UpdateUser(email string, user domain.UserReq) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (s *service) InitializeRolesAndPermission() error {
+	roles := []domain.Role{
+		{Id: uuid.New().String(), Name: "admin"},
+		{Id: uuid.New().String(), Name: "user"},
+	}
+
+	for _, role := range roles {
+		if err := s.repo.CreateRole(&role); err != nil {
+			return err
+		}
+	}
+
+	permission := []domain.RolePermissionResp{
+		{Id: uuid.New().String(), CanCreate: true, CanRead: true, CanEdit: true, CanDelete: true, IdRole: roles[0].Id},
+		{Id: uuid.New().String(), CanCreate: false, CanRead: true, CanEdit: false, CanDelete: false, IdRole: roles[1].Id},
+	}
+
+	for _, perm := range permission {
+		rolePerm := domain.RolePermissionRespToRolePermission(perm)
+		if err := s.repo.CreateRolePermission(&rolePerm); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

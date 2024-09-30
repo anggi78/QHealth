@@ -188,3 +188,11 @@ func (h *handler) UpdateUser(e echo.Context) error {
 
     return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully updated data", nil))
 }
+
+func (h *handler) InitializeRolesAndPermissions(e echo.Context) error {
+    err := h.service.InitializeRolesAndPermission()
+	if err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
+    return e.JSON(http.StatusOK, "roles and permissions initialized successfully")
+}

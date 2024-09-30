@@ -18,6 +18,7 @@ func UserRoute(u *echo.Group, db *gorm.DB) {
 	u.POST("/register", handler.Register)
 	u.POST("/login", handler.Login)
 	u.POST("/forgot-password", handler.ForgotPassword)
+	u.GET("/initialize", handler.InitializeRolesAndPermissions)
 	
 	auth := u.Group("/profile", middleware.JwtMiddleware())
 	auth.POST("/forgot", handler.ChangePassForgot)

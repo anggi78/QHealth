@@ -9,9 +9,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func GetPermissionByEmail(email string) (domain.RolePermission, error) {
+func GetPermissionByEmail(email string) (domain.RolePermissions, error) {
 	var user domain.User
-	var rolePermission domain.RolePermission
+	var rolePermission domain.RolePermissions
 	db := configs.InitDB()
 
 	if err := db.Where("email = ?", email).First(&user).Error; err != nil {

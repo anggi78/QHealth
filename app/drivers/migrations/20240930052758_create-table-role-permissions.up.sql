@@ -1,4 +1,4 @@
-CREATE TABLE role_permission (
+CREATE TABLE role_permissions (
     id varchar(100) PRIMARY KEY,
     can_create BOOLEAN DEFAULT FALSE, 
     can_read BOOLEAN DEFAULT FALSE,    

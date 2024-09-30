@@ -6,6 +6,7 @@ func UserRegisterToUser(u UserRegister) User {
 		Email:    u.Email,
 		Phone:    u.Phone,
 		Password: u.Password,
+		IdRole:   u.IdRole,
 	}
 }
 

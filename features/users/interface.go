@@ -10,20 +10,25 @@ type (
 	Repository interface {
 		CreateUser(user domain.User) error
 		FindByEmail(email string) (domain.User, error)
-		FindCodeByEmail(email string) (string, error)
+		//FindCodeByEmail(email string) (string, error)
 		UpdatePass(email, newPass string) error
 		DeleteUser(email string) error
 		UpdateUser(email string, user domain.User) error
+		GetRoleByName(roleName string) (*domain.Role, error)
+		CreateRole(role *domain.Role) error
+		CreateRolePermission(permission *domain.RolePermissions) error
 	}
 
 	Service interface {
 		Register(userReq domain.UserRegister) error
+		//RegisterUser(user *domain.UserRegister) error
 		Login(userReq domain.UserLogin) (string, error)
 		ChangePass(email string, reqPass domain.ReqChangePass) error
 		ChangePassForgot(email, newPass string) error
 		ForgotPassword(email string) error
 		DeleteUser(email string) error
 		UpdateUser(email string, user domain.UserReq) error
+		InitializeRolesAndPermission() error
 	}
 
 	Handler interface {
@@ -34,5 +39,6 @@ type (
 		ForgotPassword(e echo.Context) error
 		DeleteUser(e echo.Context) error
 		UpdateUser(e echo.Context) error
+		InitializeRolesAndPermissions(c echo.Context) error
 	}
 )
