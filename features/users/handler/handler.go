@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"log"
 	"net/http"
+	"os"
 	"qhealth/domain"
 	"qhealth/features/users"
 	"qhealth/helpers"
@@ -60,6 +62,34 @@ func (h *handler) Register(e echo.Context) error {
 	}
 
 	return e.JSON(http.StatusCreated, helpers.SuccessResponse("registered successfully", nil))
+}
+
+func (h *handler) RegisterAdmin(e echo.Context) error {
+    userReq := domain.UserRegister{}
+    err := e.Bind(&userReq)
+    if err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
+
+    if isValidAdminEmail(userReq.Email) {
+        err = h.service.RegisterAdmin(userReq)
+    } else {
+        err = h.service.Register(userReq)
+    }
+
+    if err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
+
+    return e.JSON(http.StatusCreated, helpers.SuccessResponse("registered successfully", nil))
+}
+
+func isValidAdminEmail(email string) bool {
+    adminEmail := os.Getenv("ADMIN_EMAIL")
+    if adminEmail == "" {
+        log.Fatal("ADMIN_EMAIL is not set")
+    }
+    return email == adminEmail
 }
 
 func (h *handler) ChangePass(e echo.Context) error {
@@ -187,4 +217,12 @@ func (h *handler) UpdateUser(e echo.Context) error {
     }
 
     return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully updated data", nil))
+}
+
+func (h *handler) InitializeRolesAndPermissions(e echo.Context) error {
+    err := h.service.InitializeRolesAndPermission()
+	if err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
+	return e.JSON(http.StatusOK, helpers.SuccessResponse("roles and permissions initialized successfully", nil))
 }

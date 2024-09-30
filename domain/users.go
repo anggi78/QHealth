@@ -15,12 +15,11 @@ type User struct {
 	Phone     string
 	Address   string
 	Image     string
-	Birth     string
+	Birth     *string
 	JK        string
 	Nik       string
 	ImageKtp  string
 	IdRole    string
-	Code      string
 	Role      Role `gorm:"foreignKey:IdRole"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -28,15 +27,15 @@ type User struct {
 }
 
 type UserResp struct {
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	Phone     string `json:"phone"`
-	Address   string `json:"address"`
-	Image     string `json:"image"`
-	Birth     string `json:"birth"`
-	JK        string `json:"jk"`
-	Nik       string `json:"nik"`
-	ImageKtp  string `json:"image_ktp"`
+	Name     string  `json:"name"`
+	Email    string  `json:"email"`
+	Phone    string  `json:"phone"`
+	Address  string  `json:"address"`
+	Image    string  `json:"image"`
+	Birth    *string `json:"birth"`
+	JK       string  `json:"jk"`
+	Nik      string  `json:"nik"`
+	ImageKtp string  `json:"image_ktp"`
 }
 
 type UserLogin struct {
@@ -54,7 +53,6 @@ type UserRegister struct {
 	Password string `json:"password" valid:"required~your password is required,minstringlength(6)~Password has to have a minimum length of 6 characters"`
 	Phone    string `json:"phone"`
 }
-
 type SendOtp struct {
 	Code  string `json:"code" valid:"required~your code is required"`
 	Email string `json:"email" valid:"required~your email is required, email~invalid email format"`
@@ -72,15 +70,15 @@ type ReqChangePass struct {
 }
 
 type UserReq struct {
-	Name     string `json:"name" form:"name" valid:"required~your username is required"`
-	Email    string `json:"email" form:"email" valid:"required~your email is required, email~invalid email format"`
-	Phone    string `json:"phone" form:"phone" valid:"required~your phone is required"`
-	Address  string `json:"address" form:"address" valid:"required~your address is required"`
-	Image    string `json:"image" form:"image" valid:"required~your image is required"`
-	Birth    string `json:"birth" form:"birth" valid:"required~your birth is required"`
-	JK       string `json:"jk" form:"jk" valid:"required~your jk is required"`
-	Nik      string `json:"nik" form:"nik" valid:"required~your nik is required"`
-	ImageKtp string `json:"image_ktp" form:"image_ktp" valid:"required~your image_ktp is required"`
+	Name     string  `json:"name" form:"name" valid:"required~your username is required"`
+	Email    string  `json:"email" form:"email" valid:"required~your email is required, email~invalid email format"`
+	Phone    string  `json:"phone" form:"phone" valid:"required~your phone is required"`
+	Address  string  `json:"address" form:"address" valid:"required~your address is required"`
+	Image    string  `json:"image" form:"image" valid:"required~your image is required"`
+	Birth    *string `json:"birth" form:"birth" valid:"required~your birth is required"`
+	JK       string  `json:"jk" form:"jk" valid:"required~your jk is required"`
+	Nik      string  `json:"nik" form:"nik" valid:"required~your nik is required"`
+	ImageKtp string  `json:"image_ktp" form:"image_ktp" valid:"required~your image_ktp is required"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {

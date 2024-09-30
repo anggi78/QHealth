@@ -13,7 +13,7 @@ type ArticleView struct {
 	IdArticle string
 	User      User      `gorm:"foreignKey:IdUser;references:Id"`
 	Article   Articles  `gorm:"foreignKey:IdArticle;references:Id"`
-	ViewedAt  time.Time `gorm:"autoCreateTime"`
+	ViewedAt  time.Time 
 }
 
 type ArticleViewResp struct {

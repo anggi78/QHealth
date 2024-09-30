@@ -18,9 +18,14 @@ func ArticleRoute(a *echo.Group, db *gorm.DB) {
 	a.GET("/latest", handler.GetLatestArticle)
 
 	admin := a.Group("/admin", middleware.JwtMiddleware())
-	admin.GET("", handler.GetAllArticle)
-	admin.GET("/:id", handler.GetArticleById)
-	admin.POST("", handler.CreateArticle)
-	admin.PUT("/:id", handler.UpdateArticle)
-	admin.DELETE("/:id", handler.DeleteArticle)
+	mw := middleware.NewMiddleware(db)
+	
+	// admin
+	admin.POST("", handler.CreateArticle, mw.AuthorizeAdmin())
+	admin.PUT("/:id", handler.UpdateArticle, mw.AuthorizeAdmin())
+	admin.DELETE("/:id", handler.DeleteArticle, mw.AuthorizeAdmin())
+
+	// user
+	admin.GET("", handler.GetAllArticle, mw.Authorize("read"))
+	admin.GET("/:id", handler.GetArticleById, mw.Authorize("read"))
 }

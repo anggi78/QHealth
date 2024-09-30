@@ -19,13 +19,48 @@ func NewService(repo users.Repository) users.Service {
 }
 
 func (s *service) Register(userReq domain.UserRegister) error {
-	user := domain.UserRegisterToUser(userReq)
-	err := s.repo.CreateUser(user)
-	if err != nil {
-		return err
-	}
-	return nil
+    role, err := s.repo.GetRoleByName("user")
+    if err != nil {
+        return err
+    }
+
+    user := domain.UserRegisterToUser(userReq)
+    user.IdRole = role.Id 
+
+    err = s.repo.CreateUser(user)
+    if err != nil {
+        return err
+    }
+
+    return nil
 }
+
+func (s *service) RegisterAdmin(adminReq domain.UserRegister) error {
+    role, err := s.repo.GetRoleByName("admin")
+    if err != nil {
+        return err
+    }
+
+    admin := domain.UserRegisterToUser(adminReq)
+    admin.IdRole = role.Id 
+
+    err = s.repo.CreateUser(admin)
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
+
+// func (s *service) RegisterUser(user *domain.UserRegister) error {
+// 	role, err := s.repo.GetRoleByName("user")
+// 	if err != nil {
+// 		return err
+// 	}
+// 	user.IdRole = role.Id
+
+// 	return s.repo.CreateUser(domain.User{})
+// }
 
 func (s *service) Login(userReq domain.UserLogin) (string, error) {
 	user, err := s.repo.FindByEmail(userReq.Email)
@@ -101,15 +136,15 @@ func (s *service) ForgotPassword(email string) error {
 		return errors.New("invalid email")
 	}
 
-	code, err := s.repo.FindCodeByEmail(email)
-	if err != nil {
-		return err
-	}
+	// code, err := s.repo.FindCodeByEmail(email)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = helpers.SendEmail(email, "code verification", code)
-	if err != nil {
-		return err
-	}
+	// err = helpers.SendEmail(email, "code verification", code)
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 }
 
@@ -124,4 +159,78 @@ func (s *service) UpdateUser(email string, user domain.UserReq) error {
 		return err
 	}
 	return nil
+}
+
+func (s *service) InitializeRolesAndPermission() error {
+    roles := []domain.Role{
+        {Name: "admin"},
+        {Name: "user"},
+    }
+
+    for _, role := range roles {
+        var existingRole domain.Role
+        if err := s.repo.FindRoleByName(role.Name, &existingRole); err != nil {
+            if err := s.repo.CreateRole(&role); err != nil {
+                return err
+            }
+        }
+    }
+
+    var adminRole, userRole domain.Role
+    if err := s.repo.FindRoleByName("admin", &adminRole); err != nil {
+        return err
+    }
+    if err := s.repo.FindRoleByName("user", &userRole); err != nil {
+        return err
+    }
+
+    adminPermissions := domain.RolePermissions{
+        CanCreate: true,
+        CanRead:   true,
+        CanEdit:   true,
+        CanDelete: true,
+        IdRole:    adminRole.Id,
+    }
+
+    userPermissions := domain.RolePermissions{
+        CanCreate: false,
+        CanRead:   true,
+        CanEdit:   true, 
+        CanDelete: true, 
+        IdRole:    userRole.Id,
+    }
+
+    var existingAdminPerm domain.RolePermissions
+    if err := s.repo.FindRolePermissionByRoleId(adminRole.Id, &existingAdminPerm); err != nil {
+        if err := s.repo.CreateRolePermission(&adminPermissions); err != nil {
+            return err
+        }
+    } else {
+        existingAdminPerm.CanCreate = adminPermissions.CanCreate
+        existingAdminPerm.CanRead = adminPermissions.CanRead
+        existingAdminPerm.CanEdit = adminPermissions.CanEdit
+        existingAdminPerm.CanDelete = adminPermissions.CanDelete
+
+        if err := s.repo.UpdateRolePermission(&existingAdminPerm); err != nil {
+            return err
+        }
+    }
+
+    var existingUserPerm domain.RolePermissions
+    if err := s.repo.FindRolePermissionByRoleId(userRole.Id, &existingUserPerm); err != nil {
+        if err := s.repo.CreateRolePermission(&userPermissions); err != nil {
+            return err
+        }
+    } else {
+        existingUserPerm.CanCreate = userPermissions.CanCreate
+        existingUserPerm.CanRead = userPermissions.CanRead
+        existingUserPerm.CanEdit = userPermissions.CanEdit
+        existingUserPerm.CanDelete = userPermissions.CanDelete
+
+        if err := s.repo.UpdateRolePermission(&existingUserPerm); err != nil {
+            return err
+        }
+    }
+
+    return nil
 }

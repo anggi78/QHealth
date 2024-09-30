@@ -1,61 +1,111 @@
 package middleware
 
 import (
-	"errors"
 	"net/http"
-	configs "qhealth/app/drivers"
 	"qhealth/domain"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
-func GetPermissionByEmail(email string) (domain.RolePermission, error) {
-	var user domain.User
-	var rolePermission domain.RolePermission
-	db := configs.InitDB()
-
-	if err := db.Where("email = ?", email).First(&user).Error; err != nil {
-		return rolePermission, errors.New("user not found")
-	}
-
-	if err := db.Where("id_role = ?", user.IdRole).First(&rolePermission).Error; err != nil {
-		return rolePermission, errors.New("permission not found")
-	}
-
-	return rolePermission, nil
+type Middleware struct {
+	DB *gorm.DB
 }
 
-func CheckPermission(action string) echo.MiddlewareFunc {
+func NewMiddleware(db *gorm.DB) *Middleware {
+	return &Middleware{DB: db}
+}
+
+func (m *Middleware) Authorize(permissionType string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			_, email, err := ExtractToken(c)
+			userToken, ok := c.Get("user").(*jwt.Token)
+			if !ok || !userToken.Valid {
+				return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
+			}
+
+			claims, ok := userToken.Claims.(jwt.MapClaims)
+			if !ok {
+				return echo.NewHTTPError(http.StatusForbidden, "Invalid token claims")
+			}
+
+			userId, okId := claims["id"].(string)
+			_, okEmail := claims["email"].(string)
+			if !okId || !okEmail {
+				return echo.NewHTTPError(http.StatusForbidden, "Invalid token data")
+			}
+
+			var user domain.User
+			err := m.DB.Where("id = ?", userId).First(&user).Error
 			if err != nil {
-				return c.JSON(http.StatusForbidden, "invalid token")
+				return echo.NewHTTPError(http.StatusForbidden, "user not found")
 			}
 
-			permissions, err := GetPermissionByEmail(email)
+			var rolePermissions domain.RolePermissions
+			err = m.DB.Where("id_role = ?", user.IdRole).First(&rolePermissions).Error
+			if err != nil {
+				logrus.Printf("User ID Role: %s", user.IdRole)
 
-			switch action {
+				return echo.NewHTTPError(http.StatusForbidden, "role not found or permissions not set")
+			}
+
+			switch permissionType {
 			case "read":
-				if !permissions.CanRead {
-					return c.JSON(http.StatusForbidden, "you do not have permission to read")
-                }
-            case "edit":
-                if !permissions.CanEdit {
-                    return c.JSON(http.StatusForbidden, "you do not have permission to edit")
-                }
-            case "delete":
-                if !permissions.CanDelete {
-                    return c.JSON(http.StatusForbidden, "you do not have permission to delete")
-                }
-            case "create":
-                if !permissions.CanCreate {
-                    return c.JSON(http.StatusForbidden, "you do not have permission to create")
-                }
-            default:
-                return c.JSON(http.StatusForbidden, "invalid action")
+				if !rolePermissions.CanRead {
+					return echo.NewHTTPError(http.StatusForbidden, "access denied")
+				}
+			case "edit":
+				if !rolePermissions.CanEdit {
+					return echo.NewHTTPError(http.StatusForbidden, "access denied")
+				}
+			case "delete":
+				if !rolePermissions.CanDelete {
+					return echo.NewHTTPError(http.StatusForbidden, "access denied")
+				}
+			case "create":
+				if !rolePermissions.CanCreate {
+					return echo.NewHTTPError(http.StatusForbidden, "access denied")
+				}
+			default:
+				return echo.NewHTTPError(http.StatusForbidden, "permission not recognized")
 			}
+
 			return next(c)
 		}
 	}
+}
+
+func (m *Middleware) AuthorizeAdmin() echo.MiddlewareFunc {
+    return func(next echo.HandlerFunc) echo.HandlerFunc {
+        return func(c echo.Context) error {
+            userToken, ok := c.Get("user").(*jwt.Token)
+            if !ok || !userToken.Valid {
+                return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+            }
+
+            claims, ok := userToken.Claims.(jwt.MapClaims)
+            if !ok {
+                return echo.NewHTTPError(http.StatusForbidden, "invalid token claims")
+            }
+
+            userId, okId := claims["id"].(string)
+            if !okId {
+                return echo.NewHTTPError(http.StatusForbidden, "invalid token data")
+            }
+
+            var user domain.User
+            err := m.DB.Preload("Role").Where("id = ?", userId).First(&user).Error
+            if err != nil {
+                return echo.NewHTTPError(http.StatusForbidden, "user not found")
+            }
+
+            if user.Role.Name != "admin" {
+                return echo.NewHTTPError(http.StatusForbidden, "access denied: admin only")
+            }
+
+            return next(c)
+        }
+    }
 }

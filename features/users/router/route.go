@@ -16,12 +16,15 @@ func UserRoute(u *echo.Group, db *gorm.DB) {
 	handler := handler.NewUserHandler(serv)
 
 	u.POST("/register", handler.Register)
+	u.POST("/register-admin", handler.RegisterAdmin)
 	u.POST("/login", handler.Login)
 	u.POST("/forgot-password", handler.ForgotPassword)
+	u.GET("/initialize", handler.InitializeRolesAndPermissions)
 	
 	auth := u.Group("/profile", middleware.JwtMiddleware())
+	mw := middleware.NewMiddleware(db)
 	auth.POST("/forgot", handler.ChangePassForgot)
 	auth.POST("/change", handler.ChangePass)
-	auth.PUT("", handler.UpdateUser)
-	auth.DELETE("", handler.DeleteUser)
+	auth.PUT("", handler.UpdateUser, mw.Authorize("edit"))
+	auth.DELETE("", handler.DeleteUser, mw.Authorize("delete"))
 }
