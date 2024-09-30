@@ -35,6 +35,23 @@ func (s *service) Register(userReq domain.UserRegister) error {
     return nil
 }
 
+func (s *service) RegisterAdmin(adminReq domain.UserRegister) error {
+    role, err := s.repo.GetRoleByName("admin")
+    if err != nil {
+        return err
+    }
+
+    admin := domain.UserRegisterToUser(adminReq)
+    admin.IdRole = role.Id 
+
+    err = s.repo.CreateUser(admin)
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
+
 // func (s *service) RegisterUser(user *domain.UserRegister) error {
 // 	role, err := s.repo.GetRoleByName("user")
 // 	if err != nil {
@@ -217,4 +234,3 @@ func (s *service) InitializeRolesAndPermission() error {
 
     return nil
 }
-

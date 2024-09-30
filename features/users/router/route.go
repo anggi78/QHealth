@@ -16,6 +16,7 @@ func UserRoute(u *echo.Group, db *gorm.DB) {
 	handler := handler.NewUserHandler(serv)
 
 	u.POST("/register", handler.Register)
+	u.POST("/register-admin", handler.RegisterAdmin)
 	u.POST("/login", handler.Login)
 	u.POST("/forgot-password", handler.ForgotPassword)
 	u.GET("/initialize", handler.InitializeRolesAndPermissions)

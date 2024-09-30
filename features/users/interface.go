@@ -24,7 +24,7 @@ type (
 
 	Service interface {
 		Register(userReq domain.UserRegister) error
-		//RegisterUser(user *domain.UserRegister) error
+		RegisterAdmin(adminReq domain.UserRegister) error
 		Login(userReq domain.UserLogin) (string, error)
 		ChangePass(email string, reqPass domain.ReqChangePass) error
 		ChangePassForgot(email, newPass string) error
@@ -37,6 +37,7 @@ type (
 	Handler interface {
 		Login(e echo.Context) error
 		Register(e echo.Context) error
+		RegisterAdmin(e echo.Context) error
 		ChangePass(e echo.Context) error
 		ChangePassForgot(e echo.Context) error
 		ForgotPassword(e echo.Context) error
