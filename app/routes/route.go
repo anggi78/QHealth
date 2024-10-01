@@ -6,6 +6,7 @@ import (
 	role "qhealth/features/role/router"
 	view "qhealth/features/article_view/router"
 	doctor "qhealth/features/doctor/router"
+	status "qhealth/features/queue_status/router"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -26,4 +27,7 @@ func Routes(e *echo.Echo, db *gorm.DB) {
 
 	doctroGroup := e.Group("/doctor")
 	doctor.DoctorRoute(doctroGroup, db)
+
+	statusGroup := e.Group("/status")
+	status.StatusRoute(statusGroup, db)
 }

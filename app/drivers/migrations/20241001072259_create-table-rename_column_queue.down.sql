@@ -1,0 +1,1 @@
+ALTER TABLE queue RENAME COLUMN rest_of_the_queue TO queue_position;
