@@ -20,6 +20,10 @@ type QueueStatusResp struct {
 	Name string `json:"name"`
 }
 
+type QueueStatusRespToQueue struct {
+	Name string `json:"name"`
+}
+
 func (s *QueueStatus) BeforeCreate(tx *gorm.DB) error {
 	s.Id = helpers.CreateId()
 	return nil

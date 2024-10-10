@@ -44,6 +44,11 @@ type DoctorResp struct {
 	ImageKtp string  `json:"image_ktp"`
 }
 
+type DoctorRespToQueue struct {
+	Name string  `json:"name"`
+	Spesialisasi string  `json:"spesialisasi"`
+}
+
 type DoctorLogin struct {
 	Email    string `json:"email" valid:"required~your email is required, email~invalid email format"`
 	Password string `json:"password"`

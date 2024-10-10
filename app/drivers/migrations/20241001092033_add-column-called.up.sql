@@ -1,0 +1,1 @@
+ALTER TABLE queue ADD COLUMN called_at TIMESTAMP;
