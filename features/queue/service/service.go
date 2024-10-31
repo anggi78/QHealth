@@ -3,6 +3,7 @@ package service
 import (
 	"qhealth/domain"
 	"qhealth/features/queue"
+	"time"
 )
 
 type service struct {
@@ -16,15 +17,25 @@ func NewQueueService(repo queue.Repository) queue.Service {
 }
 
 func (s *service) CreateQueue(queueReq domain.QueueReq) error {
-	var defaultStatus domain.QueueStatus
-	err := s.repo.GetQueueStatusByName("Menunggu", &defaultStatus)
+	status, err := s.repo.GetQueueStatusByName("Menunggu")
 	if err != nil {
 		return err
 	}
 
 	queue := domain.ReqToQueue(queueReq)
+	queue.IdQueueStatus = status.Id
 
-	queue.IdQueueStatus = defaultStatus.Id
+	nextQueueNumber, err := s.repo.GetNextQueueNumber()
+	if err != nil {
+		return err
+	}
+	queue.QueueNumber = nextQueueNumber
+
+	queuePosition, err := s.repo.GetQueuePosition(queue.IdDoctor, nextQueueNumber)
+	if err != nil {
+		return err
+	}
+	queue.QueuePosition = queuePosition
 
 	err = s.repo.CreateQueue(queue)
 	if err != nil {
@@ -67,4 +78,19 @@ func (s *service) UpdateQueue(id string, queue domain.QueueReq) error {
 
 func (s *service) DeleteQueue(id string) error {
 	return s.repo.DeleteQueue(id)
+}
+
+func (s *service) CallPatient(queueNumber, doctorID string) error {
+	status, err := s.repo.GetQueueStatusByName("Dipanggil")
+	if err != nil {
+		return err
+	}
+
+	calledAt := time.Now()
+	err = s.repo.UpdateQueueStatus(queueNumber, status.Id, calledAt)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

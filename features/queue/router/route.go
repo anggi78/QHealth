@@ -23,6 +23,10 @@ func QueueRoute(q *echo.Group, db *gorm.DB) {
 	queue.GET("", handler.GetAllQueues)
 	queue.GET("/:id", handler.GetQueueById)
 
+	//doctor
+	queue.POST("/call/:queue_number", handler.CallNextPatient)
+
+
 	//admin
 	queue.PUT("/:id", handler.UpdateQueue, mw.AuthorizeAdmin())
 	queue.DELETE("/:id", handler.DeleteQueue, mw.AuthorizeAdmin())

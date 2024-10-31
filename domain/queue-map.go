@@ -2,8 +2,8 @@ package domain
 
 func ReqToQueue(q QueueReq) Queue {
 	return Queue{
-		QueueNumber:   q.QueueNumber,
-		QueuePosition: q.QueuePosition,
+		// QueueNumber:   q.QueueNumber,
+		// QueuePosition: q.QueuePosition,
 		IdUser:        q.IdUser,
 		IdDoctor:      q.IdDoctor,
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 type Queue struct {
-	Id            string `gorm:"PrimaryKey"`
+	Id            string `gorm:"PrimaryKey" json:"id"`
 	QueueNumber   string
 	QueuePosition string
 	IdUser        string
@@ -24,8 +24,8 @@ type Queue struct {
 }
 
 type QueueReq struct {
-	QueueNumber   string `json:"queue_number"`
-	QueuePosition string `json:"queue_position"`
+	// QueueNumber   string `json:"queue_number"`
+	// QueuePosition string `json:"queue_position"`
 	IdUser        string
 	IdDoctor      string `json:"id_doctor"`
 }

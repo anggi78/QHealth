@@ -5,6 +5,7 @@ import (
 	"qhealth/domain"
 	"qhealth/features/queue"
 	"qhealth/helpers"
+	"qhealth/helpers/middleware"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
@@ -104,4 +105,24 @@ func (h *handler) DeleteQueue(e echo.Context) error {
 	}
 
 	return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully deleted data", nil))
+}
+
+func (h *handler) CallNextPatient(e echo.Context) error {
+	queueNumber := e.Param("queue_number")
+
+	doctorId, _, err := middleware.ExtractToken(e)  
+    if err != nil {
+        return helpers.CustomErr(e, "invalid token")
+    }
+
+    if queueNumber == "" {
+		return helpers.CustomErr(e, "queue number is required")
+	}
+
+    err = h.serv.CallPatient(queueNumber, doctorId)
+    if err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
+
+    return e.JSON(http.StatusOK, helpers.SuccessResponse("patient called successfully", nil))
 }
