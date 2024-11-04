@@ -1,0 +1,1 @@
+ALTER TABLE queue RENAME TO queues;

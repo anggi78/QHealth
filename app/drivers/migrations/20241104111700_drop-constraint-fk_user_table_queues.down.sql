@@ -1,0 +1,1 @@
+ALTER TABLE queues DROP CONSTRAINT fk_user;
