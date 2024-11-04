@@ -1,8 +1,10 @@
 package service
 
 import (
+	"fmt"
 	"qhealth/domain"
 	"qhealth/features/queue"
+	"strconv"
 	"time"
 )
 
@@ -17,42 +19,82 @@ func NewQueueService(repo queue.Repository) queue.Service {
 }
 
 func (s *service) CreateQueue(queueReq domain.QueueReq) error {
-	status, err := s.repo.GetQueueStatusByName("Menunggu")
-	if err != nil {
-		return err
-	}
+    status, err := s.repo.GetQueueStatusByName("Menunggu")
+    if err != nil {
+        return err
+    }
 
-	queue := domain.ReqToQueue(queueReq)
-	queue.IdQueueStatus = status.Id
+    queue := domain.ReqToQueue(queueReq)
+    queue.IdQueueStatus = status.Id
 
-	nextQueueNumber, err := s.repo.GetNextQueueNumber()
-	if err != nil {
-		return err
-	}
-	queue.QueueNumber = nextQueueNumber
+    lastQueue, err := s.repo.GetLastQueue()
+    if err != nil {
+        return err
+    }
 
-	queuePosition, err := s.repo.GetQueuePosition(queue.IdDoctor, nextQueueNumber)
-	if err != nil {
-		return err
-	}
-	queue.QueuePosition = queuePosition
+    lastNumber := 0
+    if lastQueue.QueueNumber != "" {
+        numberPart := lastQueue.QueueNumber[1:]
+        lastNumber, err = strconv.Atoi(numberPart)
+        if err != nil {
+            return err
+        }
+    }
+    nextNumber := lastNumber + 1
 
-	err = s.repo.CreateQueue(queue)
-	if err != nil {
-		return err
-	}
+    if nextNumber%5 == 0 || (nextNumber+1)%5 == 0 {
+        for i := 0; i < 2; i++ {
+            offlineNumber := fmt.Sprintf("A%03d", nextNumber+i)
+            offlineQueuePosition := strconv.Itoa(lastNumber + i + 1)
+            err = s.repo.CreateOfflineQueue(offlineNumber, offlineQueuePosition, status.Id)
+            if err != nil {
+                return err
+            }
+        }
+        nextNumber += 2
+    }
 
-	return nil
+    nextQueueNumber := fmt.Sprintf("A%03d", nextNumber)
+    queue.QueueNumber = nextQueueNumber
+
+    doctorID := ""
+    if queue.IdDoctor != nil {
+        doctorID = *queue.IdDoctor
+    }
+
+    count, err := s.repo.CountWaitingQueues(doctorID, nextQueueNumber, status.Id)
+    if err != nil {
+        return err
+    }
+
+    queue.QueuePosition = strconv.Itoa(int(count))
+
+    return s.repo.CreateQueue(queue)
 }
 
 func (s *service) GetAllQueues() ([]domain.QueueResp, error) {
-	queue, err := s.repo.GetAllQueues()
-	if err != nil {
-		return nil, err
-	}
+    queues, err := s.repo.GetAllQueues()
+    if err != nil {
+        return nil, err
+    }
 
-	result := domain.ListQueueToResp(queue)
-	return result, nil
+    var calledCount int
+    for _, queue := range queues {
+        if queue.QueueStatus.Name == "Dipanggil" {
+            calledCount++
+        }
+    }
+
+    for i := range queues {
+        if queues[i].QueueStatus.Name == "Menunggu" {
+            queues[i].QueuePosition = strconv.Itoa(i - calledCount)
+        } else if queues[i].QueueStatus.Name == "Dipanggil" {
+            queues[i].QueuePosition = "0"
+        }
+    }
+
+    result := domain.ListQueueToResp(queues)
+    return result, nil
 }
 
 func (s *service) GetQueueByID(id string) (*domain.QueueResp, error) {

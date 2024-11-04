@@ -10,12 +10,12 @@ import (
 type (
 	Repository interface {
 		CreateQueue(queue domain.Queue) error
+		CreateOfflineQueue(queueNumber, queuePosition, statusId string) error
 		GetAllQueues() ([]domain.Queue, error)
 		GetQueueByID(id string) (*domain.Queue, error)
 		GetQueueStatusByName(statusName string) (*domain.QueueStatus, error)
-		GetNextQueue(doctorId string) (*domain.Queue, error)
-		GetNextQueueNumber() (string, error)
-		GetQueuePosition(doctorID, userQueue string) (string, error)
+		GetLastQueue() (domain.Queue, error)
+		CountWaitingQueues(doctorID, userQueue string, statusID string) (int64, error)
 		UpdateQueue(id string, queue domain.Queue) error
 		DeleteQueue(id string) error
 		UpdateQueueStatus(queueNumber, statusID string, calledAt time.Time) error

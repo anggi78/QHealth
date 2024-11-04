@@ -43,7 +43,7 @@ func (h *handler) CreateQueue(e echo.Context) error {
 		return helpers.CustomErr(e, "user id not found in token")
 	}
 
-	queueReq.IdUser = iduser
+	queueReq.IdUser = &iduser
 
 	err := h.serv.CreateQueue(queueReq)
 	if err != nil {
