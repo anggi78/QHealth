@@ -126,3 +126,43 @@ func (h *handler) CallNextPatient(e echo.Context) error {
 
     return e.JSON(http.StatusOK, helpers.SuccessResponse("patient called successfully", nil))
 }
+
+func (h *handler) CompletePatient(e echo.Context) error {
+	queueNumber := e.Param("queue_number")
+
+	doctorId, _, err := middleware.ExtractToken(e)  
+    if err != nil {
+        return helpers.CustomErr(e, "invalid token")
+    }
+
+    if queueNumber == "" {
+		return helpers.CustomErr(e, "queue number is required")
+	}
+
+    err = h.serv.CompleteQueue(queueNumber, doctorId)
+    if err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
+
+    return e.JSON(http.StatusOK, helpers.SuccessResponse("patient queue completed successfully", nil))
+}
+
+func (h *handler) CancelQueuePatient(e echo.Context) error {
+	queueNumber := e.Param("queue_number")
+
+	doctorId, _, err := middleware.ExtractToken(e)  
+    if err != nil {
+        return helpers.CustomErr(e, "invalid token")
+    }
+
+    if queueNumber == "" {
+		return helpers.CustomErr(e, "queue number is required")
+	}
+
+    err = h.serv.CancelQueue(queueNumber, doctorId)
+    if err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
+
+    return e.JSON(http.StatusOK, helpers.SuccessResponse("patient queue cancelled successfully", nil))
+}

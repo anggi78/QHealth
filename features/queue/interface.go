@@ -28,6 +28,8 @@ type (
 		UpdateQueue(id string, queue domain.QueueReq) error
 		DeleteQueue(id string) error
 		CallPatient(queueNumber, doctorID string) error
+		CompleteQueue(queueNumber, doctorID string) error
+		CancelQueue(queueNumber, doctorID string) error
 	}
 
 	Handler interface {
@@ -37,5 +39,7 @@ type (
 		UpdateQueue(e echo.Context) error
 		DeleteQueue(e echo.Context) error
 		CallNextPatient(e echo.Context) error
+		CompletePatient(e echo.Context) error
+		CancelQueuePatient(e echo.Context) error
 	}
 )
