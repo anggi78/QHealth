@@ -78,20 +78,16 @@ func (s *service) GetAllQueues() ([]domain.QueueResp, error) {
         return nil, err
     }
 
-    var calledCount int
-    for _, queue := range queues {
-        if queue.QueueStatus.Name == "Dipanggil" {
-            calledCount++
-        }
+   activeWaitingIndex := 0
+   for i := range queues {
+    switch queues[i].QueueStatus.Name {
+    case "Menunggu":
+        queues[i].QueuePosition = strconv.Itoa(activeWaitingIndex)
+        activeWaitingIndex++
+    case "Dipanggil", "Selesai", "Dibatalkan":
+        queues[i].QueuePosition = "0"
     }
-
-    for i := range queues {
-        if queues[i].QueueStatus.Name == "Menunggu" {
-            queues[i].QueuePosition = strconv.Itoa(i - calledCount)
-        } else if queues[i].QueueStatus.Name == "Dipanggil" {
-            queues[i].QueuePosition = "0"
-        }
-    }
+   }
 
     result := domain.ListQueueToResp(queues)
     return result, nil
@@ -135,4 +131,34 @@ func (s *service) CallPatient(queueNumber, doctorID string) error {
 	}
 
 	return nil
+}
+
+func (s *service) CompleteQueue(queueNumber, doctorID string) error {
+    status, err := s.repo.GetQueueStatusByName("Selesai")
+    if err != nil {
+        return err
+    }
+
+    completedAt := time.Now()
+    err = s.repo.UpdateQueueStatus(queueNumber, status.Id, completedAt)
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
+
+func (s *service) CancelQueue(queueNumber, doctorID string) error {
+    status, err := s.repo.GetQueueStatusByName("Dibatalkan")
+    if err != nil {
+        return err
+    }
+
+    emptyTime := time.Time{}
+    err = s.repo.UpdateQueueStatus(queueNumber, status.Id, emptyTime)
+    if err != nil {
+        return err
+    }
+
+    return nil
 }
