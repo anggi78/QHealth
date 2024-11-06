@@ -24,6 +24,7 @@ type (
 	Service interface {
 		CreateQueue(queueReq domain.QueueReq) error
 		GetAllQueues() ([]domain.QueueResp, error)
+		GetAllQueuesAdmin(admin bool) ([]domain.QueueResp, error)
 		GetQueueByID(id string) (*domain.QueueResp, error)
 		UpdateQueue(id string, queue domain.QueueReq) error
 		DeleteQueue(id string) error
@@ -35,6 +36,7 @@ type (
 	Handler interface {
 		CreateQueue(e echo.Context) error
 		GetAllQueues(e echo.Context) error
+		GetAllQueuesAdmin(e echo.Context) error
 		GetQueueById(e echo.Context) error
 		UpdateQueue(e echo.Context) error
 		DeleteQueue(e echo.Context) error

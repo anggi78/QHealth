@@ -21,6 +21,7 @@ func QueueRoute(q *echo.Group, db *gorm.DB) {
 	//user
 	queue.POST("", handler.CreateQueue)
 	queue.GET("/:id", handler.GetQueueById)
+	queue.GET("", handler.GetAllQueues)
 
 	//doctor
 	queue.POST("/call/:queue_number", handler.CallNextPatient)
@@ -28,7 +29,7 @@ func QueueRoute(q *echo.Group, db *gorm.DB) {
 	queue.POST("/cancel/:queue_number", handler.CancelQueuePatient)
 
 	//admin
-	queue.GET("", handler.GetAllQueues, mw.AuthorizeAdmin())
+	queue.GET("/admin", handler.GetAllQueuesAdmin, mw.AuthorizeAdmin())
 	queue.PUT("/:id", handler.UpdateQueue, mw.AuthorizeAdmin())
 	queue.DELETE("/:id", handler.DeleteQueue, mw.AuthorizeAdmin())
 }
