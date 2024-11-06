@@ -62,6 +62,15 @@ func (h *handler) GetAllQueues(e echo.Context) error {
 	return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully get all data", queueList))
 }
 
+func (h *handler) GetAllQueuesAdmin(e echo.Context) error {
+	queueList, err := h.serv.GetAllQueuesAdmin(true)
+	if err != nil {
+		return helpers.CustomErr(e, err.Error())
+	}
+
+	return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully get all data", queueList))
+}
+
 func (h *handler) GetQueueById(e echo.Context) error {
 	id := e.Param("id")
 
