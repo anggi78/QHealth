@@ -4,6 +4,7 @@ import (
 	article "qhealth/features/article/router"
 	view "qhealth/features/article_view/router"
 	doctor "qhealth/features/doctor/router"
+	"qhealth/helpers/middleware"
 
 	"qhealth/features/message/handler"
 	"qhealth/features/message/ws"
@@ -45,9 +46,9 @@ func Routes(e *echo.Echo, db *gorm.DB, hub *ws.Hub) {
 	// messageGroup := e.Group("/chat")
 	// message.MessageRoute(messageGroup, db, &ws.Hub{})
 
-	e.GET("/ws/message", func(c echo.Context) error {
-        userID := c.QueryParam("user_id")
-        handler.MessageHandler(hub, userID, c.Response(), c.Request())
+	message := e.Group("/msg", middleware.JwtMiddleware())
+	message.GET("/ws/message", func(c echo.Context) error {
+        handler.MessageHandler(hub, "", c.Response(), c.Request())
         return nil
     })
 }

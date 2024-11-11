@@ -67,14 +67,35 @@ func (hub *Hub) Run() {
 			hub.mu.Unlock()
 
 		case message := <-hub.Broadcast:
+			log.Printf("Pesan diterima: %+v", message) 
 			msg := domain.Message{
 				MessageBody: message.Body,
 				IdUser: message.SenderId,
 				CreateDate: time.Now(),
 			}
 
-			if message.ReceiverId != "" {
+			if message.SenderId == "" || message.ReceiverId == "" {
+				log.Printf("Gagal: SenderId atau ReceiverId kosong: SenderId=%s, ReceiverId=%s", message.SenderId, message.ReceiverId)
+				continue
+			}
+
+			isDoc, err := hub.Repository.IsDoctor(message.SenderId)
+			if err != nil {
+				log.Printf("Gagal memeriksa peran pengirim: %v", err)
+                continue
+			}
+
+			if isDoc {
+				msg.IdDoctor = message.SenderId
+				msg.IdUser = message.ReceiverId
+			} else {
+				msg.IdUser = message.SenderId
 				msg.IdDoctor = message.ReceiverId
+			}
+
+			if msg.IdUser == "" || msg.IdDoctor == "" {
+				log.Printf("Pengaturan ID gagal: IdUser atau IdDoctor kosong")
+				continue
 			}
 
 			if err := hub.Repository.SaveMessage(msg, message.ReceiverId); err != nil {

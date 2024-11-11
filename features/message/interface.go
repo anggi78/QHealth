@@ -10,6 +10,7 @@ type (
 	Repository interface {
 		SaveMessage(msg domain.Message, recipientId string) error
 		GetUnreadMessages(userID string) ([]domain.Message, error)
+		IsDoctor(senderId string) (bool, error)
 	}
 
 	Handler interface {

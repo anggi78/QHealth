@@ -20,43 +20,40 @@ func NewMessageRepository(db *gorm.DB) message.Repository {
 }
 
 func (r *repository) SaveMessage(msg domain.Message, recipientId string) error {
-	// if senderRole == "user" {
-	// 	var user domain.User
-	// 	if err := r.db.First(&user, "id = ?", msg.IdUser).Error; err != nil {
-	// 		return fmt.Errorf("sender user not found: %v", err)
-	// 	}
-	// } else if senderRole == "doctor" {
-	// 	var doctor domain.Doctor
-	// 	if err := r.db.First(&doctor, "id = ?", msg.IdDoctor).Error; err != nil {
-	// 		return fmt.Errorf("sender doctor not found: %v", err)
-	// 	}
-	// }
-
-	// if msg.IdDoctor != "" {
-	// 	var doctor domain.Doctor
-	// 	if err := r.db.First(&doctor, "id = ?", recipientId).Error; err != nil {
-	// 		return fmt.Errorf("receiver doctor not found: %v", err)
-	// 	}
-	// } else {
-	// 	var user domain.User
-	// 	if err := r.db.First(&user, "id = ?", recipientId).Error; err != nil {
-	// 		return fmt.Errorf("receiver user not found: %v", err)
-	// 	}
-	// }
-
 	if err := r.db.Create(&msg).Error; err != nil {
 		return err
 	}
 
 	var userExists bool
-	if err := r.db.Table("users").Select("count(*) > 0").Where("id = ?", recipientId).Find(&userExists).Error; err != nil || !userExists {
-		return fmt.Errorf("recipient ID %s tidak ditemukan di tabel users", recipientId)
+	var doctorExists bool
+
+	if err := r.db.Table("users").Select("count(*) > 0").Where("id = ?", recipientId).Find(&userExists).Error; err != nil {
+		return err
+	}
+
+	if !userExists {
+		if err := r.db.Table("doctors").Select("count(*) > 0").Where("id = ?", recipientId).Find(&doctorExists).Error; err != nil {
+			return err
+		}
+	}
+
+	if !userExists && !doctorExists {
+		return fmt.Errorf("recipient ID %s tidak ditemukan di tabel users atau doctors", recipientId)
 	}
 
 	newRecipientId := helpers.CreateId()
-	recipientQuery := `INSERT INTO message_recipients (id, id_message, id_user, is_read) VALUES (?, ?, ?, ?)`
-	if err := r.db.Exec(recipientQuery, newRecipientId, msg.Id, recipientId, false).Error; err != nil {
-		return err
+	var recipientQuery string
+
+	if userExists {
+		recipientQuery = `INSERT INTO message_recipients (id, id_message, id_user, is_read) VALUES (?, ?, ?, ?)`
+		if err := r.db.Exec(recipientQuery, newRecipientId, msg.Id, recipientId, false).Error; err != nil {
+			return err
+		}
+	} else if doctorExists {
+		recipientQuery = `INSERT INTO message_recipients (id, id_message, id_doctor, is_read) VALUES (?, ?, ?, ?)`
+		if err := r.db.Exec(recipientQuery, newRecipientId, msg.Id, recipientId, false).Error; err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -70,4 +67,13 @@ func (r *repository) GetUnreadMessages(userID string) ([]domain.Message, error) 
 		Find(&unreadMessages).Error
 
 	return unreadMessages, err
+}
+
+func (r *repository) IsDoctor(senderId string) (bool, error) {
+	var count int64
+	err := r.db.Table("doctors").Where("id = ?", senderId).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
