@@ -9,7 +9,7 @@ import (
 	"qhealth/features/message/handler"
 	"qhealth/features/message/ws"
 
-	//message "qhealth/features/message/router"
+	messages "qhealth/features/message/router"
 	queue "qhealth/features/queue/router"
 	status "qhealth/features/queue_status/router"
 	role "qhealth/features/role/router"
@@ -43,8 +43,8 @@ func Routes(e *echo.Echo, db *gorm.DB, hub *ws.Hub) {
 	queueGroup := e.Group("/queues")
 	queue.QueueRoute(queueGroup, db)
 
-	// messageGroup := e.Group("/chat")
-	// message.MessageRoute(messageGroup, db, &ws.Hub{})
+	messageGroup := e.Group("/chat")
+	messages.MessageRoute(messageGroup, db)
 
 	message := e.Group("/msg", middleware.JwtMiddleware())
 	message.GET("/ws/message", func(c echo.Context) error {

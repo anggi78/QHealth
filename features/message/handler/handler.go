@@ -2,12 +2,25 @@ package handler
 
 import (
 	"net/http"
+	"qhealth/features/message"
 	"qhealth/features/message/ws"
+	"qhealth/helpers"
 	"qhealth/helpers/middleware"
 	"strings"
 
 	"github.com/gorilla/websocket"
+	"github.com/labstack/echo/v4"
 )
+
+type handler struct {
+	serv message.Service
+}
+
+func NewMessageHandler(serv message.Service) message.Handler {
+	return &handler{
+		serv: serv,
+	}
+}
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize: 1024,
@@ -62,4 +75,13 @@ func MessageHandler(hub *ws.Hub, userId string, w http.ResponseWriter, r *http.R
             hub.Broadcast <- message
         }
 	}()
+}
+
+func (h *handler) GetAllMessage(e echo.Context) error {
+	messageList, err := h.serv.GetAllMessage()
+	if err != nil {
+		return helpers.CustomErr(e, err.Error())
+	}
+
+	return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully get all data", messageList))
 }

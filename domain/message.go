@@ -22,6 +22,17 @@ type Message struct {
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 }
 
+type MessageResp struct {
+	Id              string            `json:"id"`
+	MessageBody     string            `json:"body"`
+	CreateDate      time.Time         `json:"create_date"`
+	IdParentMessage *string           `json:"id_parent_message"`
+	ParentMessage   *Message          `json:"parent_message"`
+	IdUser          string            `json:"id_user"`
+	User            UserResp          `json:"user"`
+	IdDoctor        string            `json:"id_doctor"`
+	Doctor          DoctorRespToQueue `json:"doctor"`
+}
 
 func (m *Message) BeforeCreate(tx *gorm.DB) error {
 	m.Id = helpers.CreateId()

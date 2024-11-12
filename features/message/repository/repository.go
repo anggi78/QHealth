@@ -77,3 +77,12 @@ func (r *repository) IsDoctor(senderId string) (bool, error) {
 	}
 	return count > 0, nil
 }
+
+func (r *repository) GetAllMessage() ([]domain.Message, error) {
+	var message []domain.Message
+	err := r.db.Preload("User").Preload("Doctor").Find(&message).Error
+	if err != nil {
+		return nil, err
+	}
+	return message, nil
+}
