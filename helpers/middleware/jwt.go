@@ -19,21 +19,6 @@ func JwtMiddleware() echo.MiddlewareFunc {
 	})
 }
 
-// func JwtMiddleware() echo.MiddlewareFunc {
-//     godotenv.Load()
-//     return echojwt.WithConfig(echojwt.Config{
-//         SigningKey:    []byte(os.Getenv("JWT_SECRET")),
-//         SigningMethod: "HS256",
-//         SuccessHandler: func(c echo.Context) {
-//             _, _, doctorId, err := ExtractToken(c)
-//             if err == nil {
-//                 c.Set("doctorId", doctorId)
-//             }
-//         },
-//     })
-// }
-
-
 func CreateToken(id, email string) (string, error) {
 	godotenv.Load()
 	claims := jwt.MapClaims{}
@@ -65,24 +50,24 @@ func ExtractToken(e echo.Context) (string, string, error) {
     return Id, email, nil
 }
 
-// func ExtractToken(e echo.Context) (string, string, string, error) {
-//     user, ok := e.Get("user").(*jwt.Token)
-//     if !ok || !user.Valid {
-//         return "", "", "", errors.New("invalid token")
-//     }
+func ExtractTokenFromString(tokenStr string) (string, string, error) {
+    parsedToken, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+        return []byte(os.Getenv("JWT_SECRET")), nil
+    })
+    if err != nil || !parsedToken.Valid {
+        return "", "", errors.New("invalid token")
+    }
 
-//     claims, ok := user.Claims.(jwt.MapClaims)
-//     if !ok {
-//         return "", "", "", errors.New("invalid token claims")
-//     }
+    claims, ok := parsedToken.Claims.(jwt.MapClaims)
+    if !ok {
+        return "", "", errors.New("invalid token claims")
+    }
 
-//     Id, okId := claims["id"].(string)
-//     email, okEmail := claims["email"].(string)
-//     doctorId, okDoctorId := claims["doctorId"].(string) 
-    
-//     if !okId || !okEmail || !okDoctorId {
-//         return "", "", "", errors.New("invalid token data")
-//     }
+    id, okId := claims["id"].(string)
+    email, okEmail := claims["email"].(string)
+    if !okId || !okEmail {
+        return "", "", errors.New("invalid token data")
+    }
 
-//     return Id, email, doctorId, nil
-// }
+    return id, email, nil
+}

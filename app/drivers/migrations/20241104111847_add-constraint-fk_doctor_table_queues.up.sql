@@ -1,1 +1,0 @@
-ALTER TABLE queues ADD CONSTRAINT fk_doctor FOREIGN KEY (id_doctor) REFERENCES doctors(id) ON DELETE SET NULL;

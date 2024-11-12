@@ -26,17 +26,17 @@ type Queue struct {
 type QueueReq struct {
 	// QueueNumber   string `json:"queue_number"`
 	// QueuePosition string `json:"queue_position"`
-	IdUser        *string
-	IdDoctor      *string `json:"id_doctor"`
+	IdUser   *string
+	IdDoctor *string `json:"id_doctor"`
 }
 
 type QueueResp struct {
 	Id            string                 `json:"id"`
 	QueueNumber   string                 `json:"queue_number"`
 	QueuePosition string                 `json:"queue_position"`
-	IdUser        *string                 `json:"id_user"`
+	IdUser        *string                `json:"id_user"`
 	User          UserResp               `json:"user"`
-	IdDoctor      *string                 `json:"id_doctor"`
+	IdDoctor      *string                `json:"id_doctor"`
 	Doctor        DoctorRespToQueue      `json:"doctor"`
 	IdQueueStatus string                 `json:"id_queue_status"`
 	QueueStatus   QueueStatusRespToQueue `json:"queue_status"`

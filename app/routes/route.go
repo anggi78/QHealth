@@ -2,21 +2,29 @@ package routes
 
 import (
 	article "qhealth/features/article/router"
-	user "qhealth/features/users/router"
-	role "qhealth/features/role/router"
 	view "qhealth/features/article_view/router"
 	doctor "qhealth/features/doctor/router"
-	status "qhealth/features/queue_status/router"
+	"qhealth/helpers/middleware"
+
+	"qhealth/features/message/handler"
+	"qhealth/features/message/ws"
+
+	messages "qhealth/features/message/router"
 	queue "qhealth/features/queue/router"
+	status "qhealth/features/queue_status/router"
+	role "qhealth/features/role/router"
+	user "qhealth/features/users/router"
+
+	//"qhealth/helpers/websocket"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
-func Routes(e *echo.Echo, db *gorm.DB) {
+func Routes(e *echo.Echo, db *gorm.DB, hub *ws.Hub) {
 	userGroup := e.Group("/users")
 	user.UserRoute(userGroup, db)
-	
+
 	articleGroup := e.Group("/article")
 	article.ArticleRoute(articleGroup, db)
 
@@ -34,4 +42,13 @@ func Routes(e *echo.Echo, db *gorm.DB) {
 
 	queueGroup := e.Group("/queues")
 	queue.QueueRoute(queueGroup, db)
+
+	messageGroup := e.Group("/chat")
+	messages.MessageRoute(messageGroup, db)
+
+	message := e.Group("/msg", middleware.JwtMiddleware())
+	message.GET("/ws/message", func(c echo.Context) error {
+        handler.MessageHandler(hub, "", c.Response(), c.Request())
+        return nil
+    })
 }

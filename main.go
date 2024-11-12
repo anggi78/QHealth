@@ -4,6 +4,8 @@ import (
 	"net/http"
 	configs "qhealth/app/drivers"
 	"qhealth/app/routes"
+	"qhealth/features/message/repository"
+	"qhealth/features/message/ws"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -13,7 +15,12 @@ func main() {
 	e := echo.New()
 
 	db := configs.InitDB()
-	routes.Routes(e, db)
+
+	hub := ws.NewHub(repository.NewMessageRepository(db))
+	go hub.Run()
+
+	routes.Routes(e, db, hub)
+
 	e.Pre(middleware.RemoveTrailingSlash())
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -34,8 +41,8 @@ func main() {
 			"ngrok-skip-browser-warning",
 		},
 		AllowCredentials: true,
-		ExposeHeaders: []string{"Content-Length"},
-		MaxAge: 86400,
+		ExposeHeaders:    []string{"Content-Length"},
+		MaxAge:           86400,
 	}))
 
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
