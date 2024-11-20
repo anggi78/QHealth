@@ -1,9 +1,9 @@
 package service
 
 import (
-	"fmt"
 	"qhealth/domain"
 	"qhealth/features/notification"
+	"qhealth/helpers"
 
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
@@ -28,7 +28,7 @@ func (s *service) FindAllNotification(c echo.Context) ([]domain.Notification, er
 	}
 
 	if notification == nil {
-		return nil, fmt.Errorf("notification not found")
+		return nil, helpers.CustomErr(c, "notification not found")
 	}
 
 	return notification, nil

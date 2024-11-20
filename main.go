@@ -1,28 +1,31 @@
 package main
 
 import (
+	//"log"
 	"net/http"
 	configs "qhealth/app/drivers"
 	"qhealth/app/routes"
 	"qhealth/features/message/repository"
 	"qhealth/features/message/ws"
 
+	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/go-playground/validator"
 )
 
 func main() {
 	e := echo.New()
 
 	db := configs.InitDB()
-
 	hub := ws.NewHub(repository.NewMessageRepository(db))
 	go hub.Run()
-
 	validate := validator.New()
 
 	routes.Routes(e, db, hub, validate)
+
+	// if err := configs.ValidateSMTPConfig(); err != nil {
+	// 	log.Fatalf("SMTP configuration error: %v", err)
+	// }
 
 	e.Pre(middleware.RemoveTrailingSlash())
 
