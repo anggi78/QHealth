@@ -4,6 +4,7 @@ import (
 	article "qhealth/features/article/router"
 	view "qhealth/features/article_view/router"
 	doctor "qhealth/features/doctor/router"
+	notification "qhealth/features/notification/router"
 	"qhealth/helpers/middleware"
 
 	"qhealth/features/message/handler"
@@ -17,11 +18,12 @@ import (
 
 	//"qhealth/helpers/websocket"
 
+	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
-func Routes(e *echo.Echo, db *gorm.DB, hub *ws.Hub) {
+func Routes(e *echo.Echo, db *gorm.DB, hub *ws.Hub, validate *validator.Validate) {
 	userGroup := e.Group("/users")
 	user.UserRoute(userGroup, db)
 
@@ -51,4 +53,7 @@ func Routes(e *echo.Echo, db *gorm.DB, hub *ws.Hub) {
         handler.MessageHandler(hub, "", c.Response(), c.Request())
         return nil
     })
+
+	notifictionGroup := e.Group("/notif")
+	notification.NotificationRoute(notifictionGroup, db, validate)
 }

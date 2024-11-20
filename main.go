@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/go-playground/validator"
 )
 
 func main() {
@@ -19,7 +20,9 @@ func main() {
 	hub := ws.NewHub(repository.NewMessageRepository(db))
 	go hub.Run()
 
-	routes.Routes(e, db, hub)
+	validate := validator.New()
+
+	routes.Routes(e, db, hub, validate)
 
 	e.Pre(middleware.RemoveTrailingSlash())
 
