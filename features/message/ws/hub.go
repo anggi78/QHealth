@@ -3,7 +3,10 @@ package ws
 import (
 	"log"
 	"qhealth/domain"
+	"qhealth/features/doctor"
 	"qhealth/features/message"
+	"qhealth/features/users"
+	"qhealth/helpers"
 	"sync"
 	"time"
 
@@ -22,6 +25,8 @@ type Hub struct {
 	Register   chan *Client
 	Unregister chan *Client
 	Repository message.Repository
+	RepositoryUser users.Repository
+	RepositoryDoctor doctor.Repository
 	mu         sync.Mutex
 }
 
@@ -31,13 +36,15 @@ type Message struct {
 	Body       string `json:"body"`
 }
 
-func NewHub(repo message.Repository) *Hub {
+func NewHub(repo message.Repository, repoUser users.Repository, repoDoctor doctor.Repository) *Hub {
 	return &Hub{
 		Clients:    make(map[string]*Client),
 		Broadcast:  make(chan Message),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 		Repository: repo,
+		RepositoryUser: repoUser,
+		RepositoryDoctor: repoDoctor,
 	}
 }
 
@@ -105,6 +112,39 @@ func (hub *Hub) Run() {
 
 			hub.mu.Lock()
 			recipient, ok := hub.Clients[message.ReceiverId]
+			
+			email := ""
+			
+			emailUser, errUser := hub.RepositoryUser.FindById(message.ReceiverId)
+			if errUser == nil {
+				email = emailUser.Email
+				log.Printf("Email found in User repository for ReceiverId %s: %s", message.ReceiverId, email)
+			} else {
+				emailDoctor, errDoctor := hub.RepositoryDoctor.FindById(message.ReceiverId)
+				if errDoctor == nil {
+					email = emailDoctor.Email
+					log.Printf("Email found in Doctor repository for ReceiverId %s: %s", message.ReceiverId, email)
+				} else {
+					log.Printf("Failed to fetch email for ReceiverId %s: UserError=%v, DoctorError=%v", message.ReceiverId, errUser, errDoctor)
+					return
+				}
+			}
+
+			if ok {
+				if err := recipient.Conn.WriteJSON(message); err != nil {
+					log.Printf("Error sending message to %s: %v", message.ReceiverId, err)
+				} else {
+					log.Printf("Message sent from %s to %s: %s", message.SenderId, message.ReceiverId, message.Body)
+				}
+			} else {
+				log.Printf("Recipient %s is not connected. Sending email notification.", message.ReceiverId)
+				if err := helpers.SendEmailNotification(email); err != nil {
+					log.Printf("Failed to send email notification to %s: %v", email, err)
+				} else {
+					log.Printf("Email notification sent to %s successfully.", email)
+				}
+			}
+
 			hub.mu.Unlock()
 
 			if ok {

@@ -16,68 +16,67 @@ type Mail struct {
 
 func SendEmailNotification(email string) error {
 	mail := Mail{
-		Host: os.Getenv("SMTP_SERVER"),
-		Port: os.Getenv("SMTP_PORT"),
+		Host:     os.Getenv("SMTP_SERVER"),
+		Port:     os.Getenv("SMTP_PORT"),
 		Username: os.Getenv("SMTP_USERNAME"),
 		Password: os.Getenv("SMTP_PASSWORD"),
 	}
 
-	body :=  `
-	<html>
-	<head>
-		<meta charset="UTF-8">
-		<title>Forgot Password - Code Verification</title>
-		<style>
-			body {
-				font-family: Arial, sans-serif;
-			}
-			.container {
-				width: 80%;
-				margin: 0 auto;
-				border: 1px solid #ccc;
-				padding: 20px;
-			}
-			.header {
-				background-color: #f0f0f0;
-				padding: 10px;
-			}
-			.header h2 {
-				margin: 0;
-				color: #333;
-			}
-			.content {
-				margin-top: 20px;
-			}
-			.content p {
-				margin: 0;
-				color: #333;
-			}
-			.footer {
-				margin-top: 20px;
-				text-align: center;
-				color: #777;
-			}
-			.footer p {
-				margin: 0;
-			}
-		</style>
-	</head>
-	<body>
-		<div class="container">
-			<div class="header">
-				<h2>Forgot Password - Code Verification</h2>
+	body := `
+		<html>
+		<head>
+			<meta charset="UTF-8">
+			<title>New Message Notification</title>
+			<style>
+				body {
+					font-family: Arial, sans-serif;
+				}
+				.container {
+					width: 80%;
+					margin: 0 auto;
+					border: 1px solid #ccc;
+					padding: 20px;
+				}
+				.header {
+					background-color: #f0f0f0;
+					padding: 10px;
+				}
+				.header h2 {
+					margin: 0;
+					color: #333;
+				}
+				.content {
+					margin-top: 20px;
+				}
+				.content p {
+					margin: 0;
+					color: #333;
+				}
+				.footer {
+					margin-top: 20px;
+					text-align: center;
+					color: #777;
+				}
+				.footer p {
+					margin: 0;
+				}
+			</style>
+		</head>
+		<body>
+			<div class="container">
+				<div class="header">
+					<h2>New Message Received</h2>
+				</div>
+				<div class="content">
+					<p>Hello,</p>
+					<p>You have received a new message. Please check your application to view it.</p>
+				</div>
+				<div class="footer">
+					<p>All rights reserved &copy; 2023 Your Company</p>
+				</div>
 			</div>
-			<div class="content">
-				<p>We received a request to reset your password. Please use the following code to verify your identity:</p>
-				<p><b>Verification Code: ` + email + `</b></p>
-				<p>If you did not request a password reset, please ignore this email.</p>
-			</div>
-			<div class="footer">
-				<p>All rights reserved &copy; 2023 Your Company</p>
-			</div>
-		</div>
-	</body>
-	</html>`
+		</body>
+		</html>`
 
 	to := []string{email}
 

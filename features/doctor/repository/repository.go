@@ -35,6 +35,15 @@ func (r *repository) FindByEmail(email string) (domain.Doctor, error) {
 	return doctor, nil
 }
 
+func (r *repository) FindById(id string) (domain.Doctor, error) {
+	doctor := domain.Doctor{}
+	err := r.db.Where("id = ?", id).First(&doctor).Error
+	if err != nil {
+		return domain.Doctor{}, err
+	}
+	return doctor, nil
+}
+
 func (r *repository) UpdatePass(email, newPass string) error {
 	doctor := domain.Doctor{}
 

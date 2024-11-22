@@ -10,6 +10,7 @@ type (
 	Repository interface {
 		CreateUser(user domain.User) error
 		FindByEmail(email string) (domain.User, error)
+		FindById(id string) (domain.User, error)
 		//FindCodeByEmail(email string) (string, error)
 		UpdatePass(email, newPass string) error
 		DeleteUser(email string) error

@@ -10,6 +10,7 @@ type (
 	Repository interface {
 		CreateDoctor(doctor domain.Doctor) error
 		FindByEmail(email string) (domain.Doctor, error)
+		FindById(id string) (domain.Doctor, error)
 		UpdatePass(email, newPass string) error
 		DeleteProfile(email string) error
 		UpdateProfile(email string, doctor domain.Doctor) error

@@ -35,6 +35,15 @@ func (r *repository) FindByEmail(email string) (domain.User, error) {
 	return user, nil
 }
 
+func (r *repository) FindById(id string) (domain.User, error) {
+	user := domain.User{}
+	err := r.db.Where("id = ?", id).First(&user).Error
+	if err != nil {
+		return domain.User{}, err
+	}
+	return user, nil
+}
+
 // func (r *repository) FindCodeByEmail(email string) (string, error) {
 // 	user := domain.User{}
 // 	err := r.db.Where("email = ?", email).First(&user).Error

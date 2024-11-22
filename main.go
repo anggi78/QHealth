@@ -5,7 +5,9 @@ import (
 	"net/http"
 	configs "qhealth/app/drivers"
 	"qhealth/app/routes"
-	"qhealth/features/message/repository"
+	message "qhealth/features/message/repository"
+	users "qhealth/features/users/repository"
+	doctor "qhealth/features/doctor/repository"
 	"qhealth/features/message/ws"
 
 	"github.com/go-playground/validator"
@@ -17,15 +19,14 @@ func main() {
 	e := echo.New()
 
 	db := configs.InitDB()
-	hub := ws.NewHub(repository.NewMessageRepository(db))
+	messageRepo := message.NewMessageRepository(db)
+    userRepo := users.NewUserRepository(db)
+	doctorRepo := doctor.NewDoctorRepository(db)
+	hub := ws.NewHub(messageRepo, userRepo, doctorRepo)
 	go hub.Run()
 	validate := validator.New()
 
 	routes.Routes(e, db, hub, validate)
-
-	// if err := configs.ValidateSMTPConfig(); err != nil {
-	// 	log.Fatalf("SMTP configuration error: %v", err)
-	// }
 
 	e.Pre(middleware.RemoveTrailingSlash())
 
