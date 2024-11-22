@@ -20,14 +20,14 @@ type Client struct {
 }
 
 type Hub struct {
-	Clients    map[string]*Client
-	Broadcast  chan Message
-	Register   chan *Client
-	Unregister chan *Client
-	Repository message.Repository
-	RepositoryUser users.Repository
+	Clients          map[string]*Client
+	Broadcast        chan Message
+	Register         chan *Client
+	Unregister       chan *Client
+	Repository       message.Repository
+	RepositoryUser   users.Repository
 	RepositoryDoctor doctor.Repository
-	mu         sync.Mutex
+	mu               sync.Mutex
 }
 
 type Message struct {
@@ -38,12 +38,12 @@ type Message struct {
 
 func NewHub(repo message.Repository, repoUser users.Repository, repoDoctor doctor.Repository) *Hub {
 	return &Hub{
-		Clients:    make(map[string]*Client),
-		Broadcast:  make(chan Message),
-		Register:   make(chan *Client),
-		Unregister: make(chan *Client),
-		Repository: repo,
-		RepositoryUser: repoUser,
+		Clients:          make(map[string]*Client),
+		Broadcast:        make(chan Message),
+		Register:         make(chan *Client),
+		Unregister:       make(chan *Client),
+		Repository:       repo,
+		RepositoryUser:   repoUser,
 		RepositoryDoctor: repoDoctor,
 	}
 }
@@ -74,11 +74,11 @@ func (hub *Hub) Run() {
 			hub.mu.Unlock()
 
 		case message := <-hub.Broadcast:
-			log.Printf("Pesan diterima: %+v", message) 
+			log.Printf("Pesan diterima: %+v", message)
 			msg := domain.Message{
 				MessageBody: message.Body,
-				IdUser: message.SenderId,
-				CreateDate: time.Now(),
+				IdUser:      message.SenderId,
+				CreateDate:  time.Now(),
 			}
 
 			if message.SenderId == "" || message.ReceiverId == "" {
@@ -89,7 +89,7 @@ func (hub *Hub) Run() {
 			isDoc, err := hub.Repository.IsDoctor(message.SenderId)
 			if err != nil {
 				log.Printf("Gagal memeriksa peran pengirim: %v", err)
-                continue
+				continue
 			}
 
 			if isDoc {
@@ -112,9 +112,9 @@ func (hub *Hub) Run() {
 
 			hub.mu.Lock()
 			recipient, ok := hub.Clients[message.ReceiverId]
-			
+
 			email := ""
-			
+
 			emailUser, errUser := hub.RepositoryUser.FindById(message.ReceiverId)
 			if errUser == nil {
 				email = emailUser.Email
