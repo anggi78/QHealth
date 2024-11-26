@@ -20,7 +20,7 @@ func NewNotificationRepository(db *gorm.DB) notification.Repository {
 func (r *repository) FindAll() ([]domain.Notification, error) {
 	var notification []domain.Notification
 
-	result := r.db.Where("deleted_at IS NULL").Preload("User").Order("created_at DESC").Find(&notification)
+	result := r.db.Where("deleted_at IS NULL").Order("created_at DESC").Find(&notification)
 	if result.Error != nil {
 		return nil, result.Error
 	}
