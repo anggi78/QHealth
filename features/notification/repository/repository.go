@@ -27,3 +27,8 @@ func (r *repository) FindAll() ([]domain.Notification, error) {
 
 	return notification, nil
 }
+
+func (r *repository) SaveNotification(notification domain.Notification) error {
+	result := r.db.Create(&notification)
+	return result.Error
+}

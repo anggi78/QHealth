@@ -3,9 +3,9 @@ CREATE TABLE notifications (
     type VARCHAR(50),
     message TEXT,
     is_read BOOLEAN DEFAULT false,
-    id_user VARCHAR(100),
+    recipient_type VARCHAR(50),
+    recipient_id VARCHAR,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP,
-    CONSTRAINT fk_user FOREIGN KEY (id_user) REFERENCES users(id)
+    deleted_at TIMESTAMP
 );

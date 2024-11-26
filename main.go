@@ -8,6 +8,7 @@ import (
 	message "qhealth/features/message/repository"
 	users "qhealth/features/users/repository"
 	doctor "qhealth/features/doctor/repository"
+	notification "qhealth/features/notification/repository"
 	"qhealth/features/message/ws"
 
 	"github.com/go-playground/validator"
@@ -22,7 +23,8 @@ func main() {
 	messageRepo := message.NewMessageRepository(db)
     userRepo := users.NewUserRepository(db)
 	doctorRepo := doctor.NewDoctorRepository(db)
-	hub := ws.NewHub(messageRepo, userRepo, doctorRepo)
+	notifRepo := notification.NewNotificationRepository(db)
+	hub := ws.NewHub(messageRepo, userRepo, doctorRepo, notifRepo)
 	go hub.Run()
 	validate := validator.New()
 

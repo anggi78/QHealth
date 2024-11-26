@@ -9,6 +9,7 @@ import (
 type (
 	Repository interface {
 		FindAll() ([]domain.Notification, error)
+		SaveNotification(notification domain.Notification) error
 	}
 
 	Service interface {
