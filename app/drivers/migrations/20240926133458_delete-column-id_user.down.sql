@@ -1,2 +1,0 @@
-ALTER TABLE articles
-DROP CONSTRAINT fk_user;

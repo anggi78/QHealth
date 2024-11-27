@@ -1,9 +1,14 @@
 package ws
 
 import (
+	"fmt"
 	"log"
 	"qhealth/domain"
+	"qhealth/features/doctor"
 	"qhealth/features/message"
+	"qhealth/features/notification"
+	"qhealth/features/users"
+	"qhealth/helpers"
 	"sync"
 	"time"
 
@@ -17,12 +22,15 @@ type Client struct {
 }
 
 type Hub struct {
-	Clients    map[string]*Client
-	Broadcast  chan Message
-	Register   chan *Client
-	Unregister chan *Client
-	Repository message.Repository
-	mu         sync.Mutex
+	Clients          map[string]*Client
+	Broadcast        chan Message
+	Register         chan *Client
+	Unregister       chan *Client
+	Repository       message.Repository
+	RepositoryUser   users.Repository
+	RepositoryDoctor doctor.Repository
+	RepositoryNotif  notification.Repository
+	mu               sync.Mutex
 }
 
 type Message struct {
@@ -31,13 +39,16 @@ type Message struct {
 	Body       string `json:"body"`
 }
 
-func NewHub(repo message.Repository) *Hub {
+func NewHub(repo message.Repository, repoUser users.Repository, repoDoctor doctor.Repository, repoNotif notification.Repository) *Hub {
 	return &Hub{
-		Clients:    make(map[string]*Client),
-		Broadcast:  make(chan Message),
-		Register:   make(chan *Client),
-		Unregister: make(chan *Client),
-		Repository: repo,
+		Clients:          make(map[string]*Client),
+		Broadcast:        make(chan Message),
+		Register:         make(chan *Client),
+		Unregister:       make(chan *Client),
+		Repository:       repo,
+		RepositoryUser:   repoUser,
+		RepositoryDoctor: repoDoctor,
+		RepositoryNotif:  repoNotif,
 	}
 }
 
@@ -67,11 +78,12 @@ func (hub *Hub) Run() {
 			hub.mu.Unlock()
 
 		case message := <-hub.Broadcast:
-			log.Printf("Pesan diterima: %+v", message) 
+			log.Printf("Pesan diterima: %+v", message)
+
 			msg := domain.Message{
 				MessageBody: message.Body,
-				IdUser: message.SenderId,
-				CreateDate: time.Now(),
+				IdUser:      message.SenderId,
+				CreateDate:  time.Now(),
 			}
 
 			if message.SenderId == "" || message.ReceiverId == "" {
@@ -82,7 +94,7 @@ func (hub *Hub) Run() {
 			isDoc, err := hub.Repository.IsDoctor(message.SenderId)
 			if err != nil {
 				log.Printf("Gagal memeriksa peran pengirim: %v", err)
-                continue
+				continue
 			}
 
 			if isDoc {
@@ -105,6 +117,59 @@ func (hub *Hub) Run() {
 
 			hub.mu.Lock()
 			recipient, ok := hub.Clients[message.ReceiverId]
+			email := ""
+
+			emailUser, errUser := hub.RepositoryUser.FindById(message.ReceiverId)
+			recipientType := "user" 
+			if errUser == nil {
+				email = emailUser.Email
+				log.Printf("Email found in User repository for ReceiverId %s: %s", message.ReceiverId, email)
+			} else {
+				emailDoctor, errDoctor := hub.RepositoryDoctor.FindById(message.ReceiverId)
+				if errDoctor == nil {
+					email = emailDoctor.Email
+					recipientType = "doctor" 
+					log.Printf("Email found in Doctor repository for ReceiverId %s: %s", message.ReceiverId, email)
+				} else {
+					log.Printf("Failed to fetch email for ReceiverId %s: UserError=%v, DoctorError=%v", message.ReceiverId, errUser, errDoctor)
+					hub.mu.Unlock()
+					continue
+				}
+			}
+			
+			notification := domain.Notification{
+				Type:          "message",
+				Message:       fmt.Sprintf("You have a new message from %s.", message.SenderId),
+				IsRead:        false,
+				RecipientType: recipientType,
+				RecipientId:   message.ReceiverId,
+				CreatedAt:     time.Now(),
+				UpdatedAt:     time.Now(),
+			}
+
+			if ok {
+				if err := recipient.Conn.WriteJSON(message); err != nil {
+					log.Printf("Error sending message to %s: %v", message.ReceiverId, err)
+				} else {
+					log.Printf("Message sent from %s to %s: %s", message.SenderId, message.ReceiverId, message.Body)
+				}
+
+				if err := hub.RepositoryNotif.SaveNotification(notification); err != nil {
+					log.Printf("Failed to save notification for connected recipient: %v", err)
+				}
+			} else {
+				log.Printf("Recipient %s is not connected. Sending email notification.", message.ReceiverId)
+				if err := helpers.SendEmailNotification(email); err != nil {
+					log.Printf("Failed to send email notification to %s: %v", email, err)
+				} else {
+					log.Printf("Email notification sent to %s successfully.", email)
+				}
+
+				if err := hub.RepositoryNotif.SaveNotification(notification); err != nil {
+					log.Printf("Failed to save notification for new message: %v", err)
+				}
+			}
+
 			hub.mu.Unlock()
 
 			if ok {

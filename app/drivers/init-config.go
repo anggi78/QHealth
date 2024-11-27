@@ -2,6 +2,7 @@ package configs
 
 import (
 	"fmt"
+	//"os"
 	"qhealth/app/drivers/configs"
 
 	"github.com/sirupsen/logrus"
@@ -20,3 +21,13 @@ func InitDB() *gorm.DB {
 	logrus.Println("db is connected")
 	return db
 }
+
+// func ValidateSMTPConfig() error {
+// 	requiredEnv := []string{"SMTP_SERVER", "SMTP_PORT", "SMTP_USERNAME", "SMTP_PASSWORD"}
+// 	for _, env := range requiredEnv {
+// 		if os.Getenv(env) == "" {
+// 			return fmt.Errorf("missing required environment variable: %s", env)
+// 		}
+// 	}
+// 	return nil
+// }
