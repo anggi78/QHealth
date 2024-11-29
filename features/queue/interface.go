@@ -14,8 +14,8 @@ type (
 		GetAllQueues() ([]domain.Queue, error)
 		GetQueueByID(id string) (*domain.Queue, error)
 		GetQueueStatusByName(statusName string) (*domain.QueueStatus, error)
-		GetLastQueue() (domain.Queue, error)
-		CountWaitingQueues(doctorID, userQueue string, statusID string) (int64, error)
+		GetLastQueue(queueType string) (*domain.Queue, error)
+		CountWaitingQueues(doctorID, userQueue, statusID string) (int64, error)
 		UpdateQueue(id string, queue domain.Queue) error
 		DeleteQueue(id string) error
 		UpdateQueueStatus(queueNumber, statusID string, calledAt time.Time) error

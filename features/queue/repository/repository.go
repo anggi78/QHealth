@@ -29,11 +29,11 @@ func (r *repository) CreateQueue(queue domain.Queue) error {
 
 func (r *repository) CreateOfflineQueue(queueNumber, queuePosition, statusId string) error {
 	queue := domain.Queue{
-		QueueNumber: queueNumber,
+		QueueNumber:   queueNumber,
 		QueuePosition: queuePosition,
 		IdQueueStatus: statusId,
-		IdDoctor: nil,
-		IdUser: nil,
+		IdDoctor:      nil,
+		IdUser:        nil,
 	}
 	err := r.db.Create(&queue).Error
 	if err != nil {
@@ -43,14 +43,14 @@ func (r *repository) CreateOfflineQueue(queueNumber, queuePosition, statusId str
 }
 
 func (r *repository) GetAllQueues() ([]domain.Queue, error) {
-    var queues []domain.Queue
-    err := r.db.Preload("User").Preload("Doctor").Preload("QueueStatus").
-        Order("queue_number").Find(&queues).Error
-    if err != nil {
-        return nil, err
-    }
+	var queues []domain.Queue
+	err := r.db.Preload("User").Preload("Doctor").Preload("QueueStatus").
+		   Order("created_at ASC").Order("queue_number").Find(&queues).Error
+	if err != nil {
+		return nil, err
+	}
 
-    return queues, nil
+	return queues, nil
 }
 
 func (r *repository) GetQueueByID(id string) (*domain.Queue, error) {
@@ -71,21 +71,26 @@ func (r *repository) GetQueueStatusByName(statusName string) (*domain.QueueStatu
 	return &status, nil
 }
 
-func (r *repository) GetLastQueue() (domain.Queue, error) {
+func (r *repository) GetLastQueue(queueType string) (*domain.Queue, error) {
 	var queue domain.Queue
-	err := r.db.Order("queue_number desc").First(&queue).Error
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return domain.Queue{}, err
+	query := r.db.Order("created_at DESC")
+	if queueType != "" {
+		query = query.Where("queue_type = ?", queueType)
 	}
-	return queue, nil
+
+	err := query.First(&queue).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	return &queue, nil
 }
 
-func (r *repository) CountWaitingQueues(doctorID, userQueue string, statusID string) (int64, error) {
-    var count int64
-    err := r.db.Model(&domain.Queue{}).
-        Where("id_doctor = ? AND id_queue_status = ? AND called_at IS NULL AND queue_number < ?", doctorID, statusID, userQueue).
-        Count(&count).Error
-    return count, err
+func (r *repository) CountWaitingQueues(doctorID, userQueue, statusID string) (int64, error) {
+	var count int64
+	err := r.db.Model(&domain.Queue{}).
+		Where("id_doctor = ? AND id_queue_status = ? AND called_at IS NULL AND queue_number < ?", doctorID, statusID, userQueue).
+		Count(&count).Error
+	return count, err
 }
 
 func (r *repository) UpdateQueue(id string, queue domain.Queue) error {
@@ -113,6 +118,6 @@ func (r *repository) DeleteQueue(id string) error {
 
 func (r *repository) UpdateQueueStatus(queueNumber, statusID string, calledAt time.Time) error {
 	err := r.db.Model(&domain.Queue{}).Where("queue_number = ?", queueNumber).
-			Updates(map[string]interface{}{"id_queue_status": statusID, "called_at": calledAt}).Error
+		Updates(map[string]interface{}{"id_queue_status": statusID, "called_at": calledAt}).Error
 	return err
 }

@@ -1,0 +1,2 @@
+ALTER TABLE queues
+ADD COLUMN queue_type VARCHAR(50) NOT NULL DEFAULT 'Umum';
