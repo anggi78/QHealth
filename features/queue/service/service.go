@@ -27,7 +27,22 @@ func (s *service) CreateQueue(queueReq domain.QueueReq) error {
 	queue := domain.ReqToQueue(queueReq)
 	queue.IdQueueStatus = status.Id
 
-	lastQueue, err := s.repo.GetLastQueue()
+	queueType := ""
+	queuePrefix := ""
+	if (queueReq.Age >= 16 && queueReq.Age <= 59) || queueReq.IsHajjCheck || 
+		queueReq.IsDentalPatient || queueReq.IsTBTreatment || queueReq.IsHospitalReferral {
+			queueType = "Umum"
+			queuePrefix = "A"
+		} else if queueReq.Age <= 15 || queueReq.Age >= 60 || 
+			queueReq.IsDoctorCertificate || queueReq.IsPregnantReferral {
+				queueType = "Khusus"
+				queuePrefix = "B"
+			} else {
+				return fmt.Errorf("kategori antrian tidak valid")
+			}
+			queue.QueueType = queueType
+
+	lastQueue, err := s.repo.GetLastQueue(queueType)
 	if err != nil {
 		return err
 	}
@@ -44,7 +59,7 @@ func (s *service) CreateQueue(queueReq domain.QueueReq) error {
 
 	if nextNumber%5 == 0 || (nextNumber+1)%5 == 0 {
 		for i := 0; i < 2; i++ {
-			offlineNumber := fmt.Sprintf("A%03d", nextNumber+i)
+			offlineNumber := fmt.Sprintf("%s%03d", queuePrefix, nextNumber+i)
 			offlineQueuePosition := strconv.Itoa(lastNumber + i + 1)
 			err = s.repo.CreateOfflineQueue(offlineNumber, offlineQueuePosition, status.Id)
 			if err != nil {
@@ -54,7 +69,7 @@ func (s *service) CreateQueue(queueReq domain.QueueReq) error {
 		nextNumber += 2
 	}
 
-	nextQueueNumber := fmt.Sprintf("A%03d", nextNumber)
+	nextQueueNumber := fmt.Sprintf("%s%03d", queuePrefix, nextNumber)
 	queue.QueueNumber = nextQueueNumber
 
 	doctorID := ""

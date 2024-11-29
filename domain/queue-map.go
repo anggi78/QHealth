@@ -4,8 +4,8 @@ func ReqToQueue(q QueueReq) Queue {
 	return Queue{
 		// QueueNumber:   q.QueueNumber,
 		// QueuePosition: q.QueuePosition,
-		IdUser:        q.IdUser,
-		IdDoctor:      q.IdDoctor,
+		IdUser:   q.IdUser,
+		IdDoctor: q.IdDoctor,
 	}
 }
 
@@ -35,7 +35,8 @@ func QueueToResp(q Queue) QueueResp {
 		QueueStatus: QueueStatusRespToQueue{
 			Name: q.QueueStatus.Name,
 		},
-		CalledAt: q.CalledAt.Format("2006-01-02 15:04:05"),
+		QueueType: q.QueueType,
+		CalledAt:  q.CalledAt.Format("2006-01-02 15:04:05"),
 	}
 }
 

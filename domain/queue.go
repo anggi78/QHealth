@@ -14,6 +14,7 @@ type Queue struct {
 	IdUser        *string
 	IdDoctor      *string
 	IdQueueStatus string
+	QueueType     string
 	CalledAt      time.Time
 	User          User           `gorm:"foreignKey:IdUser;references:Id"`
 	Doctor        Doctor         `gorm:"foreignKey:IdDoctor;references:Id"`
@@ -26,8 +27,15 @@ type Queue struct {
 type QueueReq struct {
 	// QueueNumber   string `json:"queue_number"`
 	// QueuePosition string `json:"queue_position"`
-	IdUser   *string
-	IdDoctor *string `json:"id_doctor"`
+	IdUser              *string
+	IdDoctor            *string `json:"id_doctor"`
+	Age                 int     `json:"age"`
+	IsHajjCheck         bool    `json:"hajj"`
+	IsDentalPatient     bool    `json:"dental"`
+	IsTBTreatment       bool    `json:"tb_treatment"`
+	IsHospitalReferral  bool    `json:"hospital_referral"`
+	IsDoctorCertificate bool    `json:"doctor_certificate"`
+	IsPregnantReferral  bool    `json:"pregnant_referral"`
 }
 
 type QueueResp struct {
@@ -40,6 +48,7 @@ type QueueResp struct {
 	Doctor        DoctorRespToQueue      `json:"doctor"`
 	IdQueueStatus string                 `json:"id_queue_status"`
 	QueueStatus   QueueStatusRespToQueue `json:"queue_status"`
+	QueueType     string                 `json:"queue_type"`
 	CalledAt      string                 `json:"called_at"`
 }
 
