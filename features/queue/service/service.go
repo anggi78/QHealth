@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"qhealth/domain"
 	"qhealth/features/queue"
+	"qhealth/helpers"
 	"strconv"
 	"time"
 )
@@ -88,25 +89,40 @@ func (s *service) CreateQueue(queueReq domain.QueueReq) error {
 }
 
 func (s *service) GetAllQueues() ([]domain.QueueResp, error) {
-	queues, err := s.repo.GetAllQueues()
-	if err != nil {
-		return nil, err
-	}
+    queues, err := s.repo.GetAllQueues()
+    if err != nil {
+        return nil, err
+    }
 
-	activeWaitingIndex := 0
-	for i := range queues {
-		switch queues[i].QueueStatus.Name {
-		case "Menunggu":
-			queues[i].QueuePosition = strconv.Itoa(activeWaitingIndex)
-			activeWaitingIndex++
-		case "Dipanggil", "Selesai", "Dibatalkan":
-			queues[i].QueuePosition = "0"
-		}
-	}
+    activeWaitingIndex := 1 
+    for i := range queues {
+        switch queues[i].QueueStatus.Name {
+        case "Menunggu":
+            oldPosition, err := strconv.Atoi(queues[i].QueuePosition)
+            if err != nil {
+                fmt.Printf("Invalid queue position for queue ID %s: %v\n", queues[i].Id, err)
+                continue
+            }
 
-	result := domain.ListQueueToResp(queues)
-	return result, nil
+            queues[i].QueuePosition = strconv.Itoa(activeWaitingIndex)
+
+            if oldPosition > activeWaitingIndex {
+                err := helpers.SendQueueNotification(queues[i].User.Email)
+                if err != nil {
+                    fmt.Printf("Failed to send notification for queue ID %s: %v\n", queues[i].Id, err)
+                }
+            }
+
+            activeWaitingIndex++
+        case "Dipanggil", "Selesai", "Dibatalkan":
+            queues[i].QueuePosition = "0"
+        }
+    }
+
+    result := domain.ListQueueToResp(queues)
+    return result, nil
 }
+
 
 func (s *service) GetAllQueuesAdmin(admin bool) ([]domain.QueueResp, error) {
 	queues, err := s.repo.GetAllQueues()

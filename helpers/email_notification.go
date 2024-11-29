@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
@@ -14,7 +15,7 @@ type Mail struct {
 	Password string
 }
 
-func SendEmailNotification(email string) error {
+func SendMessageNotification(email string) error {
 	mail := Mail{
 		Host:     os.Getenv("SMTP_SERVER"),
 		Port:     os.Getenv("SMTP_PORT"),
@@ -100,6 +101,68 @@ func SendEmailNotification(email string) error {
 	}
 	return nil
 }
+
+func SendQueueNotification(email string) error {
+    if email == "" {
+        return fmt.Errorf("email tidak tersedia")
+    }
+
+    mail := Mail{
+        Host:     os.Getenv("SMTP_SERVER"),
+        Port:     os.Getenv("SMTP_PORT"),
+        Username: os.Getenv("SMTP_USERNAME"),
+        Password: os.Getenv("SMTP_PASSWORD"),
+    }
+
+    // Format konten email
+    body := `
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Queue Notification</title>
+    </head>
+    <body>
+        <h3>Halo,</h3>
+        <p>Posisi antrean Anda telah berubah. Silakan cek aplikasi untuk informasi lebih lanjut.</p>
+        <p>Terima kasih telah menggunakan layanan kami!</p>
+        <br>
+        <p>Salam,</p>
+        <p>Tim QHealth</p>
+    </body>
+    </html>
+    `
+
+    to := []string{email}
+
+    // Buat pesan email
+    m := gomail.NewMessage()
+    m.SetHeader("From", mail.Username)
+    m.SetHeader("To", to...)
+    m.SetHeader("Subject", "QHealth Notification: Perubahan Posisi Antrean")
+    m.SetBody("text/html", body)
+
+    // Konversi port
+    port, err := strconv.Atoi(mail.Port)
+    if err != nil {
+        return fmt.Errorf("invalid SMTP port: %v", err)
+    }
+
+    // Dialer SMTP
+    dialer := gomail.NewDialer(
+        mail.Host,
+        port,
+        mail.Username,
+        mail.Password,
+    )
+
+    // Kirim email
+    if err := dialer.DialAndSend(m); err != nil {
+        return fmt.Errorf("failed to send email: %v", err)
+    }
+
+    return nil
+}
+
 
 func SendOTP(email string, otp string) error {
 	mail := Mail{
