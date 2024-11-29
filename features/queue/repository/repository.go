@@ -72,13 +72,6 @@ func (r *repository) GetQueueStatusByName(statusName string) (*domain.QueueStatu
 }
 
 func (r *repository) GetLastQueue(queueType string) (*domain.Queue, error) {
-	// var queue domain.Queue
-	// err := r.db.Where("queue_type = ?", queueType).Order("queue_number desc").First(&queue).Error
-	// if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-	// 	return domain.Queue{}, err
-	// }
-	// return queue, nil
-
 	var queue domain.Queue
 	query := r.db.Order("created_at DESC")
 	if queueType != "" {
