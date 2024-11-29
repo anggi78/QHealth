@@ -159,7 +159,7 @@ func (hub *Hub) Run() {
 				}
 			} else {
 				log.Printf("Recipient %s is not connected. Sending email notification.", message.ReceiverId)
-				if err := helpers.SendEmailNotification(email); err != nil {
+				if err := helpers.SendMessageNotification(email); err != nil {
 					log.Printf("Failed to send email notification to %s: %v", email, err)
 				} else {
 					log.Printf("Email notification sent to %s successfully.", email)
