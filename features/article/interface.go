@@ -10,7 +10,7 @@ type (
 	Repository interface {
 		CreateArticle(article domain.Articles) error
 		GetUserByEmail(email string) (domain.User, error)
-		GetAllArticle(title string) ([]domain.Articles, error)
+		GetAllArticle(title string, page, pageSize int) ([]domain.Articles, int, error)
 		GetLatestArticle() ([]domain.Articles, error)
 		GetArticleById(id string) (*domain.Articles, error)
 		UpdateArticle(id string, article domain.Articles) error
@@ -20,7 +20,7 @@ type (
 	Service interface {
 		CreateArticle(articleReq domain.ArticleReq) error
 		GetUserByEmail(email string) (domain.User, error)
-		GetAllArticle(title string, userId string) ([]domain.ArticleResp, error)
+		GetAllArticle(title, userId string, page, pageSize int) ([]domain.ArticleResp, int, error)
 		GetLatestArticle() ([]domain.ArticleResp, error)
 		GetArticleById(id string) (*domain.Articles, error)
 		UpdateArticle(id string, article domain.ArticleReq) error

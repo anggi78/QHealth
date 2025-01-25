@@ -6,6 +6,7 @@ import (
 	"qhealth/features/queue"
 	"qhealth/helpers"
 	"qhealth/helpers/middleware"
+	"strconv"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
@@ -54,16 +55,34 @@ func (h *handler) CreateQueue(e echo.Context) error {
 }
 
 func (h *handler) GetAllQueues(e echo.Context) error {
-	queueList, err := h.serv.GetAllQueues()
+	page, _ := strconv.Atoi(e.QueryParam("page"))
+	pageSize, _ := strconv.Atoi(e.QueryParam("pageSize"))
+
+	if page <= 0 {
+		page = 1
+	}
+	if pageSize <= 0 {
+		pageSize = 10
+	}
+
+	queueList, totalItems, err := h.serv.GetAllQueues(page, pageSize)
 	if err != nil {
 		return helpers.CustomErr(e, err.Error())
 	}
 
-	return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully get all data", queueList))
+	currentPage, allPages := helpers.CalculatePaginationValues(page, pageSize, totalItems)
+	pagination := helpers.PaginationResponse{
+		CurrentPage: currentPage,
+		NextPage:    helpers.GetNextPage(currentPage, allPages),
+		PrevPage:    helpers.GetPrevPage(currentPage),
+		AllPages:    allPages,
+	}
+
+	return e.JSON(http.StatusOK, helpers.SuccessResponsePage("successfully get all data", queueList, pagination))
 }
 
 func (h *handler) GetAllQueuesAdmin(e echo.Context) error {
-	queueList, err := h.serv.GetAllQueuesAdmin(true)
+	queueList, _, err := h.serv.GetAllQueuesAdmin(true, 0, 0)
 	if err != nil {
 		return helpers.CustomErr(e, err.Error())
 	}

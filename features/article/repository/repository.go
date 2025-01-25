@@ -33,20 +33,26 @@ func (r *repository) GetUserByEmail(email string) (domain.User, error) {
     return user, nil
 }
 
-func (r *repository) GetAllArticle(title string) ([]domain.Articles, error) {
+func (r *repository) GetAllArticle(title string, page, pageSize int) ([]domain.Articles, int, error) {
 	var article []domain.Articles
-	query := r.db.Order("created_at")
+	var total int64
 
+	query := r.db.Model(&domain.Articles{})
 	if title != "" {
 		query = query.Where("title LIKE ?", "%"+title+"%")
 	}
 
-	err := query.Find(&article).Error
-	if err != nil {
-		return nil, err
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
 	}
 
-	return article, nil
+	offset := (page - 1) * pageSize
+	err := query.Order("created_at").Limit(pageSize).Offset(offset).Find(&article).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return article, int(total), nil
 }
 
 func (r *repository) GetLatestArticle() ([]domain.Articles, error) {

@@ -6,6 +6,7 @@ import (
 	"qhealth/features/article"
 	"qhealth/helpers"
 	"qhealth/helpers/middleware"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -50,6 +51,16 @@ func (h *handler) CreateArticle(e echo.Context) error {
 }
 
 func (h *handler) GetAllArticle(e echo.Context) error {
+	pageStr := e.QueryParam("page")
+	title := e.QueryParam("title")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	pageSize := 10
+
 	_, userEmail, err := middleware.ExtractToken(e)
     if err != nil {
         return helpers.CustomErr(e, "invalid token")
@@ -60,14 +71,23 @@ func (h *handler) GetAllArticle(e echo.Context) error {
         return helpers.CustomErr(e, "user not found")
     }
 
-	title := e.QueryParam("title")
-
-	articleList, err := h.serv.GetAllArticle(title, user.Id)
+	articleList, total, err := h.serv.GetAllArticle(title, user.Id, page, pageSize)
 	if err != nil {
 		return helpers.CustomErr(e, err.Error())
 	}
 
-	return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully get all data", articleList))
+	currentPage, allPages := helpers.CalculatePaginationValues(page, pageSize, total)
+	nextPage := helpers.GetNextPage(currentPage, allPages)
+	prevPage := helpers.GetPrevPage(currentPage)
+
+	pagination := helpers.PaginationResponse{
+		CurrentPage: currentPage,
+		NextPage: nextPage,
+		PrevPage: prevPage,
+		AllPages: allPages,
+	}
+
+	return e.JSON(http.StatusOK, helpers.SuccessResponsePage("successfully get all data", articleList, pagination))
 }
 
 func (h *handler) GetLatestArticle(e echo.Context) error {
