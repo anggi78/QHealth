@@ -1,15 +1,17 @@
 package main
 
 import (
-	//"log"
+	"log"
 	"net/http"
 	configs "qhealth/app/drivers"
 	"qhealth/app/routes"
-	message "qhealth/features/message/repository"
-	users "qhealth/features/users/repository"
 	doctor "qhealth/features/doctor/repository"
-	notification "qhealth/features/notification/repository"
+	message "qhealth/features/message/repository"
 	"qhealth/features/message/ws"
+	naivebayes "qhealth/features/naive-bayes/repository"
+	naive "qhealth/features/naive-bayes/service"
+	notification "qhealth/features/notification/repository"
+	users "qhealth/features/users/repository"
 
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
@@ -20,6 +22,18 @@ func main() {
 	e := echo.New()
 
 	db := configs.InitDB()
+
+	repo := naivebayes.NewNaiveRepository(db)
+	service := naive.NewNaiveService(repo)
+
+	filePath := "../diagnosis.xlsx"
+
+	if err := service.ImportPatientsFromExcel(filePath); err != nil {
+		log.Fatalf("Failed to import patients: %v", err)
+	} else {
+		log.Println("Data successfully imported to the database")
+	}
+
 	messageRepo := message.NewMessageRepository(db)
     userRepo := users.NewUserRepository(db)
 	doctorRepo := doctor.NewDoctorRepository(db)
