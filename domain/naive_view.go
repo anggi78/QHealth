@@ -7,6 +7,7 @@ func PatientToResp(p Patient) PatientResp {
 		Age:       p.Age,
 		Diagnosis: p.Diagnosis,
 		Category:  p.Category,
+		Priority:  p.Priority,
 	}
 }
 

@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"log"
+	"fmt"
 	"qhealth/domain"
 	naivebayes "qhealth/features/naive-bayes"
 
@@ -22,27 +22,31 @@ func (r *repository) SavePatientsToDB(patients []domain.Patient) error {
     for _, patient := range patients {
         var existingPatient domain.Patient
         result := r.db.Where("name = ? AND age = ?", patient.Name, patient.Age).First(&existingPatient)
-        if result.Error == nil {
-            log.Printf("Patient %s (Age: %d) already exists in the database, skipping...", patient.Name, patient.Age)
-            continue
-        }
 
-        if err := r.db.Create(&patient).Error; err != nil {
-            log.Printf("Failed to insert patient: %+v, error: %v", patient, err)
-            return err
+        if result.Error == nil { 
+
+            existingPatient.Diagnosis = patient.Diagnosis
+            existingPatient.Category = patient.Category
+            existingPatient.Priority = patient.Priority
+
+            if err := r.db.Save(&existingPatient).Error; err != nil {
+                return fmt.Errorf("failed to update patient %s: %v", patient.Name, err)
+            }
+        } else { 
+            if err := r.db.Create(&patient).Error; err != nil {
+                return fmt.Errorf("failed to insert patient %s: %v", patient.Name, err)
+            }
         }
     }
 
-    log.Println("All patients processed successfully")
     return nil
 }
 
-
-
 func (r *repository) GetAllPatients() ([]domain.Patient, error) {
 	var patients []domain.Patient
-	if err := r.db.Raw("SELECT id, name, age, diagnosis, category FROM patients").Scan(&patients).Error; err != nil {
-		return nil, err
-	}
+	err := r.db.Find(&patients).Error
+    if err != nil {
+        return nil, err
+    }
 	return patients, nil
 }

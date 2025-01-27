@@ -15,9 +15,11 @@ type (
 	Service interface {
 		GetAllPatients() ([]domain.PatientResp, error)
 		ImportPatientsFromExcel(filePath string) error
+		ClassifyPatients() error
 	}
 
 	Handler interface {
 		GetAllPatients(e echo.Context) error
+		ClassifyPatients(e echo.Context) error
 	}
 )

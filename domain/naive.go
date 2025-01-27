@@ -12,6 +12,7 @@ type Patient struct {
 	Age       int    `json:"age"`
 	Diagnosis string `json:"diagnosis"`
 	Category  string `json:"category"`
+	Priority  string `json:"priority"`
 }
 
 type PatientResp struct {
@@ -20,6 +21,7 @@ type PatientResp struct {
 	Age       int    `json:"age"`
 	Diagnosis string `json:"diagnosis"`
 	Category  string `json:"category"`
+	Priority  string `json:"priority"`
 }
 
 func (p *Patient) BeforeCreate(tx *gorm.DB) error {

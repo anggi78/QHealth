@@ -17,4 +17,5 @@ func PatientRoute(p *echo.Group, db *gorm.DB) {
 
 	patient := p.Group("/patient", middleware.JwtMiddleware())
 	patient.GET("", handler.GetAllPatients)
+	patient.POST("/classify", handler.ClassifyPatients)
 }

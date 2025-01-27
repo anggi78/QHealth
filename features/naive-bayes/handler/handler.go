@@ -26,3 +26,16 @@ func (h *handler) GetAllPatients(e echo.Context) error {
 
 	return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully get all data", patientList))
 }
+
+func (h *handler) ClassifyPatients(e echo.Context) error {
+    if err := h.serv.ClassifyPatients(); err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
+
+    patientList, err := h.serv.GetAllPatients()
+    if err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
+
+    return e.JSON(http.StatusOK, helpers.SuccessResponse("patients classified successfully", patientList))
+}
