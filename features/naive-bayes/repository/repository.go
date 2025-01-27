@@ -50,3 +50,22 @@ func (r *repository) GetAllPatients() ([]domain.Patient, error) {
     }
 	return patients, nil
 }
+
+func (r *repository) GetPatientsByPriority(priority string) ([]domain.Patient, error) {
+    var patients []domain.Patient
+
+    if priority == "" {
+        err := r.db.Find(&patients).Error
+        if err != nil {
+            return nil, err
+        }
+        return patients, nil
+    }
+
+    err := r.db.Where("priority = ?", priority).Find(&patients).Error
+    if err != nil {
+        return nil, err
+    }
+
+    return patients, nil
+}
