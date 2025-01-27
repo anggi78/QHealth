@@ -15,6 +15,7 @@ import (
 	status "qhealth/features/queue_status/router"
 	role "qhealth/features/role/router"
 	user "qhealth/features/users/router"
+	naive "qhealth/features/naive-bayes/router"
 
 	//"qhealth/helpers/websocket"
 
@@ -56,4 +57,7 @@ func Routes(e *echo.Echo, db *gorm.DB, hub *ws.Hub, validate *validator.Validate
 
 	notifictionGroup := e.Group("/notif")
 	notification.NotificationRoute(notifictionGroup, db, validate)
+
+	patientGroup := e.Group("/naive")
+	naive.PatientRoute(patientGroup, db)
 }

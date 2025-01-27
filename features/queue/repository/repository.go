@@ -42,15 +42,23 @@ func (r *repository) CreateOfflineQueue(queueNumber, queuePosition, statusId str
 	return nil
 }
 
-func (r *repository) GetAllQueues() ([]domain.Queue, error) {
+func (r *repository) GetAllQueues(offset, limit int) ([]domain.Queue, int, error) {
 	var queues []domain.Queue
-	err := r.db.Preload("User").Preload("Doctor").Preload("QueueStatus").
-		   Order("created_at ASC").Order("queue_number").Find(&queues).Error
+	var totalItems int64
+
+	err := r.db.Model(&domain.Queue{}).Count(&totalItems).Error
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return queues, nil
+	err = r.db.Preload("User").Preload("Doctor").Preload("QueueStatus").
+		Order("created_at ASC").Order("queue_number").Offset(0).
+		Offset(offset).Limit(limit).Find(&queues).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return queues, int(totalItems), nil
 }
 
 func (r *repository) GetQueueByID(id string) (*domain.Queue, error) {
@@ -72,6 +80,12 @@ func (r *repository) GetQueueStatusByName(statusName string) (*domain.QueueStatu
 }
 
 func (r *repository) GetLastQueue(queueType string) (*domain.Queue, error) {
+	// var queue domain.Queue
+	// err := r.db.Where("queue_type = ?", queueType).Order("queue_number desc").First(&queue).Error
+	// if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	// 	return domain.Queue{}, err
+	// }
+	// return queue, nil
 	var queue domain.Queue
 	query := r.db.Order("created_at DESC")
 	if queueType != "" {
@@ -93,6 +107,21 @@ func (r *repository) CountWaitingQueues(doctorID, userQueue, statusID string) (i
 	return count, err
 }
 
+func (r *repository) CountWaitingQueuesBeforePage(queueNumber, statusID string) (int64, error) {
+	var count int64
+
+	err := r.db.Model(&domain.Queue{}).
+		Where("queue_number < ?", queueNumber).
+		Where("id_queue_status = ?", statusID). 
+		Count(&count).Error
+
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
 func (r *repository) UpdateQueue(id string, queue domain.Queue) error {
 	_, err := r.GetQueueByID(id)
 	if err != nil {
@@ -105,6 +134,12 @@ func (r *repository) UpdateQueue(id string, queue domain.Queue) error {
 	}
 
 	return nil
+}
+
+func (r *repository) UpdateQueuePosition(Id, newPosition string) error {
+	err := r.db.Model(&domain.Queue{}).Where("id = ?", Id).
+		Update("queue_position", newPosition).Error
+	return err
 }
 
 func (r *repository) DeleteQueue(id string) error {

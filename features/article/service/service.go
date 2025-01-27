@@ -29,15 +29,14 @@ func (s *service) GetUserByEmail(email string) (domain.User, error) {
 }
 
 
-func (s *service) GetAllArticle(title string, userId string) ([]domain.ArticleResp, error) {
-	article, err := s.repo.GetAllArticle(title)
-
+func (s *service) GetAllArticle(title, userId string, page, pageSize int) ([]domain.ArticleResp, int, error) {
+	article, total, err := s.repo.GetAllArticle(title, page, pageSize)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	result := domain.ListArticleToResp(article)
-	return result, nil
+	return result, total, nil
 }
 
 func (s *service) GetLatestArticle() ([]domain.ArticleResp, error) {

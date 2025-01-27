@@ -30,18 +30,18 @@ func (s *service) CreateQueue(queueReq domain.QueueReq) error {
 
 	queueType := ""
 	queuePrefix := ""
-	if (queueReq.Age >= 16 && queueReq.Age <= 59) || queueReq.IsHajjCheck || 
+	if (queueReq.Age >= 16 && queueReq.Age <= 59) || queueReq.IsHajjCheck ||
 		queueReq.IsDentalPatient || queueReq.IsTBTreatment || queueReq.IsHospitalReferral {
-			queueType = "Umum"
-			queuePrefix = "A"
-		} else if queueReq.Age <= 15 || queueReq.Age >= 60 || 
-			queueReq.IsDoctorCertificate || queueReq.IsPregnantReferral {
-				queueType = "Khusus"
-				queuePrefix = "B"
-			} else {
-				return fmt.Errorf("kategori antrian tidak valid")
-			}
-			queue.QueueType = queueType
+		queueType = "Umum"
+		queuePrefix = "A"
+	} else if queueReq.Age <= 15 || queueReq.Age >= 60 ||
+		queueReq.IsDoctorCertificate || queueReq.IsPregnantReferral {
+		queueType = "Khusus"
+		queuePrefix = "B"
+	} else {
+		return fmt.Errorf("kategori antrian tidak valid")
+	}
+	queue.QueueType = queueType
 
 	lastQueue, err := s.repo.GetLastQueue(queueType)
 	if err != nil {
@@ -88,46 +88,60 @@ func (s *service) CreateQueue(queueReq domain.QueueReq) error {
 	return s.repo.CreateQueue(queue)
 }
 
-func (s *service) GetAllQueues() ([]domain.QueueResp, error) {
-    queues, err := s.repo.GetAllQueues()
-    if err != nil {
-        return nil, err
-    }
+func (s *service) GetAllQueues(page, pageSize int) ([]domain.QueueResp, int, error) {
+	offset := (page - 1) * pageSize
 
-    activeWaitingIndex := 1 
-    for i := range queues {
-        switch queues[i].QueueStatus.Name {
-        case "Menunggu":
-            oldPosition, err := strconv.Atoi(queues[i].QueuePosition)
-            if err != nil {
-                fmt.Printf("Invalid queue position for queue ID %s: %v\n", queues[i].Id, err)
-                continue
-            }
+	queues, totalItems, err := s.repo.GetAllQueues(offset, pageSize)
+	if err != nil {
+		return nil, 0, err
+	}
 
-            queues[i].QueuePosition = strconv.Itoa(activeWaitingIndex)
+	if len(queues) == 0 {
+		result := domain.ListQueueToResp(queues)
+		return result, totalItems, nil
+	}
 
-            if oldPosition > activeWaitingIndex {
-                err := helpers.SendQueueNotification(queues[i].User.Email)
-                if err != nil {
-                    fmt.Printf("Failed to send notification for queue ID %s: %v\n", queues[i].Id, err)
-                }
-            }
+	totalWaitingBefore, err := s.repo.CountWaitingQueuesBeforePage(queues[0].QueueNumber, "")
+	if err != nil {
+		return nil, 0, err
+	}
 
-            activeWaitingIndex++
-        case "Dipanggil", "Selesai", "Dibatalkan":
-            queues[i].QueuePosition = "0"
-        }
-    }
+	activeWaitingIndex := int(totalWaitingBefore) + 0
 
-    result := domain.ListQueueToResp(queues)
-    return result, nil
+	for i := range queues {
+		switch queues[i].QueueStatus.Name {
+		case "Menunggu":
+			oldPosition, err := strconv.Atoi(queues[i].QueuePosition)
+			if err != nil {
+				fmt.Printf("Invalid queue position for queue ID %s: %v\n", queues[i].Id, err)
+				continue
+			}
+
+			queues[i].QueuePosition = strconv.Itoa(activeWaitingIndex)
+
+			if oldPosition > activeWaitingIndex {
+				err := helpers.SendQueueNotification(queues[i].User.Email)
+				if err != nil {
+					fmt.Printf("Failed to send notification for queue ID %s: %v\n", queues[i].Id, err)
+				}
+			}
+
+			activeWaitingIndex++
+		case "Dipanggil", "Selesai", "Dibatalkan":
+			queues[i].QueuePosition = "0"
+		}
+	}
+	fmt.Println("Total Waiting Before:", totalWaitingBefore)
+
+	fmt.Println("First Queue Number on Page:", queues[0].QueueNumber)
+	result := domain.ListQueueToResp(queues)
+	return result, totalItems, nil
 }
 
-
-func (s *service) GetAllQueuesAdmin(admin bool) ([]domain.QueueResp, error) {
-	queues, err := s.repo.GetAllQueues()
+func (s *service) GetAllQueuesAdmin(admin bool, page, pageSize int) ([]domain.QueueResp, int, error) {
+	queues, _, err := s.repo.GetAllQueues(page, pageSize)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	for i := range queues {
@@ -148,7 +162,7 @@ func (s *service) GetAllQueuesAdmin(admin bool) ([]domain.QueueResp, error) {
 	}
 
 	result := domain.ListQueueToResp(queues)
-	return result, nil
+	return result, 0, nil
 }
 
 func (s *service) GetQueueByID(id string) (*domain.QueueResp, error) {
