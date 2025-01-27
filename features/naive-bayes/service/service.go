@@ -29,6 +29,17 @@ func (s *service) GetAllPatients() ([]domain.PatientResp, error) {
 	return result, nil
 }
 
+func (s *service) GetPatientsByPriority(priority string) ([]domain.PatientResp, error) {
+    patients, err := s.repo.GetPatientsByPriority(priority)
+    if err != nil {
+        return nil, err
+    }
+
+    result := domain.ListPatientToResp(patients)
+    return result, nil
+}
+
+
 func (s *service) ImportPatientsFromExcel(filePath string) error {
 	patients, err := excel.ReadExcelFile(filePath)
 	if err != nil {

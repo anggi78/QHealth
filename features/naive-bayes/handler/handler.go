@@ -19,13 +19,16 @@ func NewNaiveHandler(serv naivebayes.Service) naivebayes.Handler {
 }
 
 func (h *handler) GetAllPatients(e echo.Context) error {
-	patientList, err := h.serv.GetAllPatients()
-	if err != nil {
-		return helpers.CustomErr(e, err.Error())
-	}
+    priority := e.QueryParam("priority")
 
-	return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully get all data", patientList))
+    patientList, err := h.serv.GetPatientsByPriority(priority)
+    if err != nil {
+        return helpers.CustomErr(e, err.Error())
+    }
+
+    return e.JSON(http.StatusOK, helpers.SuccessResponse("successfully get filtered data", patientList))
 }
+
 
 func (h *handler) ClassifyPatients(e echo.Context) error {
     if err := h.serv.ClassifyPatients(); err != nil {
